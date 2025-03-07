@@ -1,0 +1,129 @@
+﻿@page "/relatorios"
+@inject AlunoService AlunoService
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+
+<PageTitle>Relatório de Frequência</PageTitle>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h4>Relatório de Frequência</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="mes" class="form-label">Mês</label>
+                        <select class="form-control" @bind="mes">
+                            <option value="1">Janeiro</option>
+                            <option value="2">Fevereiro</option>
+                            <option value="3">Março</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Maio</option>
+                            <option value="6">Junho</option>
+                            <option value="7">Julho</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="ano" class="form-label">Ano</label>
+                        <InputNumber class="form-control" @bind-Value="ano" />
+                    </div>
+
+                    <div class="col-md-12 mt-3">
+                        <button class="btn btn-primary" @onclick="GerarRelatorio">Gerar Relatório</button>
+                        <button class="btn btn-success" @onclick="GerarRelatorioPdf" disabled="@isGeneratingPdf">Gerar PDF</button>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    @if (relatorio != null)
+                    {
+                        <h5>@relatorio.Titulo</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>@relatorio.Coluna1</th>
+                                    <th>@relatorio.Coluna2</th>
+                                    <th>@relatorio.Coluna3</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in relatorio.Dados)
+                                {
+                                    <tr>
+                                        <td>@item.Coluna1</td>
+                                        <td>@item.Coluna2</td>
+                                        <td>@item.Coluna3</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>Selecione o mês e clique em "Gerar Relatório".</p>
+                    }
+                </div>
+
+                @if (isGeneratingPdf)
+                {
+                    <div class="text-center mt-4">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p>Gerando PDF... Por favor, aguarde.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int mes = DateTime.Now.Month;
+    private int ano = DateTime.Now.Year;
+
+    private Relatorio relatorio;
+    private bool isGeneratingPdf = false;
+
+    private async Task GerarRelatorio()
+    {
+        
+        relatorio = await AlunoService.ObterRelatorioFrequenciaPorMes(mes, ano);
+    }
+
+    private async Task GerarRelatorioPdf()
+    {
+        if (relatorio != null)
+        {
+            try
+            {
+                isGeneratingPdf = true;
+                StateHasChanged(); 
+
+                var response = await Http.GetAsync($"relatorio/gerar-pdf?mes={mes}&ano={ano}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+                    var fileName = $"Relatorio_Frequencia_{mes}_{ano}.pdf";
+
+                    await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, pdfBytes);
+                }
+            }
+            finally
+            {
+                isGeneratingPdf = false;
+                StateHasChanged(); 
+            }
+        }
+    }
+
+}

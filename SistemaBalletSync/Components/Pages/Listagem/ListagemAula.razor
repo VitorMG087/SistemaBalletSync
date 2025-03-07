@@ -1,0 +1,88 @@
+﻿@page "/aulas"
+@using Microsoft.AspNetCore.Components
+@inject AulaService AulaService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@inject AulaService AulaService
+
+
+<PageTitle>Aulas - BalletSync</PageTitle>
+
+<div class="row card p-3 mb-3">
+    <div class="d-flex justify-content-between">
+        <h3>Lista de Aulas</h3>
+        <button class="btn btn-primary" type="button" @onclick="NovaAula">Nova Aula</button>
+    </div>
+</div>
+
+@if (aulas == null)
+{
+    <p>Carregando...</p>
+}
+else if (!aulas.Any())
+{
+    <p>Não há aulas cadastradas.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Local da Aula</th>
+                <th scope="col">Data e Hora</th>
+                <th scope="col">Nome do Professor</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var aula in aulas)
+            {
+                <tr>
+                    <th scope="row">@aula.Id</th>
+                    <td>@aula.Local</td>
+                    <td>@aula.DataHora</td>
+                    <td>@aula.NomeProfessor</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditarAula(aula.Id)">Editar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => ApagarAula(aula.Id)">Apagar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Aula> aulas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarAulas();
+    }
+
+    private async Task CarregarAulas()
+    {
+        aulas = await AulaService.GetAulasAsync();
+    }
+
+    private void NovaAula()
+    {
+        Navigation.NavigateTo("/aulas/novo", true);
+    }
+
+    private void EditarAula(int id)
+    {
+        Navigation.NavigateTo($"/aulas/editar/{id}");
+    }
+
+    private async Task ApagarAula(int id)
+    {
+        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "Deseja realmente apagar esta Aula?");
+        if (confirmar)
+        {
+            await AulaService.DeleteAulaAsync(id);
+            await CarregarAulas();
+        }
+    }
+}

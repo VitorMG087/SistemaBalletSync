@@ -1,0 +1,99 @@
+﻿@page "/professores"
+@using Microsoft.AspNetCore.Components
+@inject ProfessorService ProfessorService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle> Professores - BalletSync</PageTitle>
+
+<div class="row card p-3 mb-3">
+	<div class="d-flex justify-content-between">
+		<h3>Lista de Professores</h3>
+		<button class="btn btn-primary" type="button" @onclick="NovoProfessor">Novo Professor</button>
+	</div>
+</div>
+
+@if (professores == null)
+{
+	<p>Carregando...</p>
+}
+else if (professores.Count == 0)
+{
+	<p>Não há professores cadastrados.</p>
+}
+else
+{
+
+	<table class="table table-bordered">
+		<thead>
+			<tr>
+				<th scope="col">ID</th>
+				<th scope="col">Nome</th>
+				<th scope="col">CPF</th>
+				<th scope="col">Telefone</th>
+				<th scope="col">Cep</th>
+				<th scope="col">Estado</th>
+				<th scope="col">Cidade</th>
+				<th scope="col">Bairro</th>
+				<th scope="col">Endereco</th>
+				<th scope="col">Complemento</th>
+
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var professor in professores)
+			{
+				<tr>
+					<th scope="row">@professor.Id</th>
+					<td>@professor.Nome </td>
+					<td>@professor.CPF</td>
+					<td>@professor.Telefone</td>
+					<td>@professor?.Cep</td>
+					<td>@professor.Estado</td>
+					<td>@professor.Cidade</td>
+					<td>@professor?.Bairro</td>
+					<td>@professor?.Endereco</td>
+					<td>@professor?.Complemento</td>
+					<td>
+
+						<button class="btn btn-sm btn-primary" @onclick="() => EditarProfessor(professor.Id)">Editar</button>
+
+
+						<button class="btn btn-sm btn-danger" @onclick="() => ApagarProfessor(professor.Id)">Apagar</button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+	@using Microsoft.AspNetCore.Components;
+
+	private List<Professor> professores;
+
+	protected override async Task OnInitializedAsync()
+	{
+		professores = await ProfessorService.GetProfessoresAsync();
+	}
+
+	private void NovoProfessor()
+	{
+		Navigation.NavigateTo("/professores/novo", true);
+	}
+
+	private void EditarProfessor(int id)
+	{
+		Navigation.NavigateTo($"/professores/editar/{id}");
+	}
+
+	private async Task ApagarProfessor(int id)
+	{
+		var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "Deseja realmente apagar este Professor?");
+		if (confirmar)
+		{
+			await ProfessorService.DeleteProfessorAsync(id);
+			professores = await ProfessorService.GetProfessoresAsync();
+		}
+	}
+}

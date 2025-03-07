@@ -1,0 +1,100 @@
+﻿@page "/alunos"
+@using Microsoft.AspNetCore.Components
+@inject AlunoService AlunoService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle> Alunos - BalletSync</PageTitle>
+
+<div class="row card p-3 mb-3">
+	<div class="d-flex justify-content-between">
+		<h3>Lista de Alunos</h3>
+		<button class="btn btn-primary" type="button" @onclick="NovoAluno">Novo Aluno</button>
+	</div>
+</div>
+
+@if (alunos == null)
+{
+	<p>Carregando...</p>
+}
+else if (alunos.Count == 0)
+{
+	<p>Não há alunos cadastrados.</p>
+}
+else
+{
+
+	<table class="table table-bordered">
+		<thead>
+			<tr>
+				<th scope="col">ID</th>
+				<th scope="col">Nome</th>
+				<th scope="col">CPF</th>
+				<th scope="col">Telefone</th>
+				<th scope="col">Cep</th>
+				<th scope="col">Estado</th>
+				<th scope="col">Cidade</th>
+				<th scope="col">Bairro</th>
+				<th scope="col">Endereco</th>
+				<th scope="col">Complemento</th>
+
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var aluno in alunos)
+			{
+				<tr>
+					<th scope="row">@aluno.Id</th>
+					<td>@aluno.Nome </td>
+					<td>@aluno.CPF</td>
+					<td>@aluno.Telefone</td>
+					<td>@aluno?.Cep</td>
+					<td>@aluno.Estado</td>
+					<td>@aluno.Cidade</td>
+					<td>@aluno?.Bairro</td>
+					<td>@aluno?.Endereco</td>
+					<td>@aluno?.Complemento</td>
+					<td>
+
+						<button class="btn btn-sm btn-primary" @onclick="() => EditarAluno(aluno.Id)">Editar</button>
+
+
+						<button class="btn btn-sm btn-danger" @onclick="() => ApagarAluno(aluno.Id)">Apagar</button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+	@using Microsoft.AspNetCore.Components;
+
+	private List<Aluno> alunos;
+
+	protected override async Task OnInitializedAsync()
+	{
+		alunos = await AlunoService.GetAlunosAsync();
+	}
+
+	private void NovoAluno()
+	{
+		Navigation.NavigateTo("/alunos/novo", true);
+	}
+
+	private void EditarAluno(int id)
+	{
+		Navigation.NavigateTo($"/alunos/editar/{id}");
+	}
+
+	private async Task ApagarAluno(int id)
+	{
+		var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "Deseja realmente apagar este Aluno?");
+		if (confirmar)
+		{
+			await AlunoService.DeleteAlunoAsync(id);
+			alunos = await AlunoService.GetAlunosAsync();
+		}
+	}
+}
+

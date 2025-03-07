@@ -1,0 +1,56 @@
+﻿<div class="top-row d-flex justify-content-center navbar navbar-dark">
+    <div class="container-fluid d-flex justify-content-center">
+        <img src="../img/logo-ballet.png" height="55px" alt="Logo BalletSync">
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <i class="bi bi-house"></i> Início
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="alunos">
+                <i class="bi bi-person"></i> Alunos
+            </NavLink>
+        </div>
+         <div class="nav-item px-3">
+            <NavLink class="nav-link" href="professores">
+               <i class="bi bi-pen"></i> Professores
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="aulas">
+                <i class="bi bi-book"></i> Aulas
+            </NavLink>
+        </div>
+         <div class="nav-item px-3">
+            <NavLink class="nav-link" href="relatorios">
+               <i class="bi bi-flag"></i> Relatorios
+            </NavLink>
+        </div
+         <div class="nav-item px-3">
+            <NavLink class="nav-link" href="sair">
+               <i class="bi bi-arrow-return-left"></i> Sair
+            </NavLink>
+        </div
+
+
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
