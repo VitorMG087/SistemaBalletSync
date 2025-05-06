@@ -1,0 +1,85 @@
+﻿@page "/recebimentos/novo"
+@page "/recebimentos/editar/{id:int}"
+@inject RecebimentoService RecebimentoService
+@inject NavigationManager Navigation
+
+<PageTitle>Recebimentos - Cadastro/Edição</PageTitle>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">@((id == 0) ? "Cadastrar" : "Editar") Recebimento</h4>
+            </div>
+            <div class="card-body">
+                <EditForm Model="RecebimentoModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="row">
+                        <div class="col-xxl-4 col-md-6 mb-3">
+                            <label class="form-label">Descrição<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="RecebimentoModel.Descricao" />
+                            <ValidationMessage For="@(() => RecebimentoModel.Descricao)" />
+                        </div>
+                        <div class="col-xxl-4 col-md-6 mb-3">
+                            <label class="form-label">Valor<span class="text-danger">*</span></label>
+                            <InputNumber class="form-control" @bind-Value="RecebimentoModel.Valor" />
+                            <ValidationMessage For="@(() => RecebimentoModel.Valor)" />
+                        </div>
+                        <div class="col-xxl-4 col-md-6 mb-3">
+                            <label class="form-label">Data<span class="text-danger">*</span></label>
+                            <InputDate class="form-control" @bind-Value="RecebimentoModel.Data" />
+                            <ValidationMessage For="@(() => RecebimentoModel.Data)" />
+                        </div>
+                        <div class="col-xxl-4 col-md-6 mb-3">
+                            <label class="form-label">Categoria<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="RecebimentoModel.Categoria" />
+                            <ValidationMessage For="@(() => RecebimentoModel.Categoria)" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-3">
+                        <button class="btn btn-secondary" type="button" @onclick="Voltar">Voltar</button>
+                        <button class="btn btn-primary" type="submit">Salvar</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Recebimento RecebimentoModel = new Recebimento();
+    [Parameter] public int id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Verifique se o ID não é 0 (quando você está editando um recebimento existente)
+        if (id != 0)
+        {
+            RecebimentoModel = await RecebimentoService.GetRecebimentoByIdAsync(id.ToString());
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (id == 0)
+        {
+            // Adicionar novo recebimento
+            await RecebimentoService.AddRecebimentoAsync(RecebimentoModel);
+        }
+        else
+        {
+            // Atualizar um recebimento existente
+            await RecebimentoService.UpdateRecebimentoAsync(RecebimentoModel, id.ToString());
+        }
+
+        Navigation.NavigateTo("/recebimentos"); // Redireciona para a lista de recebimentos
+    }
+
+    private void Voltar()
+    {
+        Navigation.NavigateTo("/recebimentos"); // Navega de volta para a lista de recebimentos
+    }
+}

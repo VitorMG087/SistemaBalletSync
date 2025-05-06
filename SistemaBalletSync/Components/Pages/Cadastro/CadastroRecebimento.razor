@@ -1,0 +1,82 @@
+﻿@page "/recebimentos"
+@inject RecebimentoService RecebimentoService
+@inject NavigationManager Navigation
+
+<PageTitle>Lista de Recebimentos</PageTitle>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header align-items-center d-flex justify-content-between">
+                <h4 class="card-title mb-0 flex-grow-1">Lista de Recebimentos</h4>
+                <a href="/recebimentos/novo" class="btn btn-primary">Cadastrar Novo</a>
+            </div>
+            <div class="card-body">
+                @if (recebimentos != null && recebimentos.Any())
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Data</th>
+                                <th>Categoria</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var recebimento in recebimentos)
+                            {
+                                <tr>
+                                    <td>@recebimento.Descricao</td>
+                                    <td>@recebimento.Valor.ToString("C2")</td>
+                                    <td>@recebimento.Data.ToString("dd/MM/yyyy")</td>
+                                    <td>@recebimento.Categoria</td>
+                                    <td>
+                                        <a href="/recebimentos/editar/@recebimento.Id" class="btn btn-sm btn-primary">Editar</a>
+                                        <button class="btn btn-danger btn-sm" @onclick="() => DeletarRecebimento(recebimento.Id)">Excluir</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>Nenhum recebimento cadastrado.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Recebimento> recebimentos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarRecebimentos();
+    }
+
+    private async Task CarregarRecebimentos()
+    {
+        recebimentos = await RecebimentoService.GetAllRecebimentosAsync();
+    }
+
+    private async Task DeletarRecebimento(int id)
+    {
+        var confirm = await ConfirmarExclusao();
+        if (confirm)
+        {
+            await RecebimentoService.DeleteRecebimentoAsync(id);
+            await CarregarRecebimentos();
+        }
+    }
+
+    // Você pode substituir por um modal futuramente
+    private Task<bool> ConfirmarExclusao()
+    {
+        // Simula sempre "true" para confirmação de exclusão
+        return Task.FromResult(true);
+    }
+}

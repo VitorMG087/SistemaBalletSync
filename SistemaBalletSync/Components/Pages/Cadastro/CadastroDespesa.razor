@@ -1,0 +1,83 @@
+﻿@page "/despesas/novo"
+@page "/despesas/editar/{idDespesa:int}"
+@inject DespesaService DespesaService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Despesas - BalletSync</PageTitle>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">@((idDespesa == null) ? "Cadastrar" : "Editar") Despesa</h4>
+            </div>
+            <div class="card-body">
+                <EditForm Model="DespesaModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label class="form-label">Descrição<span class="text-danger">*</span></label>
+                        <InputText class="form-control" @bind-Value="DespesaModel.Descricao" />
+                        <ValidationMessage For="@(() => DespesaModel.Descricao)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Valor<span class="text-danger">*</span></label>
+                        <InputNumber class="form-control" @bind-Value="DespesaModel.Valor" />
+                        <ValidationMessage For="@(() => DespesaModel.Valor)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Data<span class="text-danger">*</span></label>
+                        <InputDate class="form-control" @bind-Value="DespesaModel.Data" />
+                        <ValidationMessage For="@(() => DespesaModel.Data)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Categoria</label>
+                        <InputText class="form-control" @bind-Value="DespesaModel.Categoria" />
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-secondary" type="button" @onclick="Voltar">Voltar</button>
+                        <button class="btn btn-primary" type="submit">Salvar</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Despesa DespesaModel = new();
+    [Parameter] public int? idDespesa { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (idDespesa.HasValue)
+        {
+            DespesaModel = await DespesaService.GetDespesaByIdAsync(idDespesa.Value) ?? new Despesa();
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (idDespesa == null)
+        {
+            await DespesaService.AddDespesaAsync(DespesaModel);
+        }
+        else
+        {
+            await DespesaService.UpdateDespesaAsync(DespesaModel, idDespesa.Value);
+        }
+
+        Navigation.NavigateTo("/despesas");
+    }
+
+    private void Voltar()
+    {
+        Navigation.NavigateTo("/despesas", true);
+    }
+}

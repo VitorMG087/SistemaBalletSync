@@ -1,0 +1,83 @@
+﻿@page "/despesas"
+@using Microsoft.AspNetCore.Components
+@inject DespesaService DespesaService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Despesas - BalletSync</PageTitle>
+
+<div class="row card p-3 mb-3">
+    <div class="d-flex justify-content-between">
+        <h3>Lista de Despesas</h3>
+        <button class="btn btn-primary" type="button" @onclick="NovaDespesa">Nova Despesa</button>
+    </div>
+</div>
+
+@if (despesas == null)
+{
+    <p>Carregando...</p>
+}
+else if (despesas.Count == 0)
+{
+    <p>Não há despesas cadastradas.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Data</th>
+                <th>Categoria</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var despesa in despesas)
+            {
+                <tr>
+                    <td>@despesa.Id</td>
+                    <td>@despesa.Descricao</td>
+                    <td>@despesa.Valor.ToString("C")</td>
+                    <td>@despesa.Data.ToString("dd/MM/yyyy")</td>
+                    <td>@despesa.Categoria</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditarDespesa(despesa.Id)">Editar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => ApagarDespesa(despesa.Id)">Apagar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Despesa> despesas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        despesas = await DespesaService.GetDespesasAsync();
+    }
+
+    private void NovaDespesa()
+    {
+        Navigation.NavigateTo("/despesas/novo", true);
+    }
+
+    private void EditarDespesa(int id)
+    {
+        Navigation.NavigateTo($"/despesas/editar/{id}");
+    }
+
+    private async Task ApagarDespesa(int id)
+    {
+        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "Deseja realmente apagar esta Despesa?");
+        if (confirmar)
+        {
+            await DespesaService.DeleteDespesaAsync(id);
+            despesas = await DespesaService.GetDespesasAsync();
+        }
+    }
+}
