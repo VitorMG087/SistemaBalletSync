@@ -1,15 +1,16 @@
 ﻿@page "/relatorios"
 @inject AlunoService AlunoService
+@inject DespesaService DespesaService
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
 
-<PageTitle>Relatório de Frequência</PageTitle>
+<PageTitle>Relatório de Frequência e Despesas</PageTitle>
 
 <div class="row">
     <div class="col-lg-12">
         <div class="card">
             <div class="card-header">
-                <h4>Relatório de Frequência</h4>
+                <h4>Relatório de Frequência e Despesas</h4>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -70,6 +71,36 @@
                     {
                         <p>Selecione o mês e clique em "Gerar Relatório".</p>
                     }
+
+                    @if (despesas != null && despesas.Any())
+                    {
+                        <h5>Despesas</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                    <th>Data</th>
+                                    <th>Categoria</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var despesa in despesas)
+                                {
+                                    <tr>
+                                        <td>@despesa.Descricao</td>
+                                        <td>@despesa.Valor.ToString("C")</td>
+                                        <td>@despesa.Data.ToString("dd/MM/yyyy")</td>
+                                        <td>@despesa.Categoria</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>Não há despesas para o mês selecionado.</p>
+                    }
                 </div>
 
                 @if (isGeneratingPdf)
@@ -91,12 +122,16 @@
     private int ano = DateTime.Now.Year;
 
     private Relatorio relatorio;
+    private List<Despesa> despesas;
     private bool isGeneratingPdf = false;
 
     private async Task GerarRelatorio()
     {
-        
+        // Gerar relatório de frequência
         relatorio = await AlunoService.ObterRelatorioFrequenciaPorMes(mes, ano);
+
+        // Buscar as despesas do mês e ano selecionados
+        despesas = await DespesaService.GetDespesasPorMesEAnoAsync(mes, ano);
     }
 
     private async Task GerarRelatorioPdf()
@@ -106,14 +141,14 @@
             try
             {
                 isGeneratingPdf = true;
-                StateHasChanged(); 
+                StateHasChanged();
 
                 var response = await Http.GetAsync($"relatorio/gerar-pdf?mes={mes}&ano={ano}");
 
                 if (response.IsSuccessStatusCode)
                 {
                     var pdfBytes = await response.Content.ReadAsByteArrayAsync();
-                    var fileName = $"Relatorio_Frequencia_{mes}_{ano}.pdf";
+                    var fileName = $"Relatorio_Frequencia_e_Despesas_{mes}_{ano}.pdf";
 
                     await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, pdfBytes);
                 }
@@ -121,9 +156,8 @@
             finally
             {
                 isGeneratingPdf = false;
-                StateHasChanged(); 
+                StateHasChanged();
             }
         }
     }
-
 }

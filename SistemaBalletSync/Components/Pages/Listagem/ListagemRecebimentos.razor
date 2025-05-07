@@ -55,10 +55,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Verifique se o ID não é 0 (quando você está editando um recebimento existente)
         if (id != 0)
         {
-            RecebimentoModel = await RecebimentoService.GetRecebimentoByIdAsync(id.ToString());
+          
+            RecebimentoModel = await RecebimentoService.GetRecebimentoByIdAsync(id);
         }
     }
 
@@ -66,20 +66,20 @@
     {
         if (id == 0)
         {
-            // Adicionar novo recebimento
+           
             await RecebimentoService.AddRecebimentoAsync(RecebimentoModel);
         }
         else
         {
-            // Atualizar um recebimento existente
-            await RecebimentoService.UpdateRecebimentoAsync(RecebimentoModel, id.ToString());
+            
+            await RecebimentoService.UpdateRecebimentoAsync(RecebimentoModel, id);
         }
 
-        Navigation.NavigateTo("/recebimentos"); // Redireciona para a lista de recebimentos
+        Navigation.NavigateTo("/recebimentos"); 
     }
 
     private void Voltar()
     {
-        Navigation.NavigateTo("/recebimentos"); // Navega de volta para a lista de recebimentos
+        Navigation.NavigateTo("/recebimentos"); 
     }
 }

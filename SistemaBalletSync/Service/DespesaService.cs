@@ -92,6 +92,33 @@ public class DespesaService
 
         await cmd.ExecuteNonQueryAsync();
     }
+    public async Task<List<Despesa>> GetDespesasPorMesEAnoAsync(int mes, int ano)
+    {
+        var despesas = new List<Despesa>();
+
+        using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var query = "SELECT id, descricao, valor, data, categoria FROM despesas WHERE EXTRACT(MONTH FROM data) = @Mes AND EXTRACT(YEAR FROM data) = @Ano";
+        using var cmd = new NpgsqlCommand(query, connection);
+        cmd.Parameters.AddWithValue("Mes", mes);
+        cmd.Parameters.AddWithValue("Ano", ano);
+
+        using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            despesas.Add(new Despesa
+            {
+                Id = reader.GetInt32(0),
+                Descricao = reader.GetString(1),
+                Valor = reader.GetDecimal(2),
+                Data = reader.GetDateTime(3),
+                Categoria = reader.IsDBNull(4) ? null : reader.GetString(4)
+            });
+        }
+
+        return despesas;
+    }
 
     public async Task DeleteDespesaAsync(int id)
     {

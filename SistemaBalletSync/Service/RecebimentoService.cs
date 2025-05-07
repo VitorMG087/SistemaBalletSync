@@ -20,12 +20,19 @@ public class RecebimentoService
         return result.AsList();
     }
 
-    public async Task<Recebimento> GetRecebimentoByIdAsync(string id)
+    public async Task<Recebimento> GetRecebimentoByIdAsync(int id)
     {
         using var connection = new NpgsqlConnection(_connectionString);
         var query = "SELECT * FROM recebimentos WHERE id = @Id";
         var result = await connection.QuerySingleOrDefaultAsync<Recebimento>(query, new { Id = id });
         return result;
+    }
+
+    public async Task UpdateRecebimentoAsync(Recebimento recebimento, int id)
+    {
+        using var connection = new NpgsqlConnection(_connectionString);
+        var query = "UPDATE recebimentos SET descricao = @Descricao, valor = @Valor, data = @Data, categoria = @Categoria WHERE id = @Id";
+        await connection.ExecuteAsync(query, new { recebimento.Descricao, recebimento.Valor, recebimento.Data, recebimento.Categoria, Id = id });
     }
 
     public async Task AddRecebimentoAsync(Recebimento recebimento)
@@ -35,12 +42,6 @@ public class RecebimentoService
         await connection.ExecuteAsync(query, recebimento);
     }
 
-    public async Task UpdateRecebimentoAsync(Recebimento recebimento, string id)
-    {
-        using var connection = new NpgsqlConnection(_connectionString);
-        var query = "UPDATE recebimentos SET descricao = @Descricao, valor = @Valor, data = @Data, categoria = @Categoria WHERE id = @Id";
-        await connection.ExecuteAsync(query, new { recebimento.Descricao, recebimento.Valor, recebimento.Data, recebimento.Categoria, Id = id });
-    }
 
     public async Task DeleteRecebimentoAsync(int id)
     {
