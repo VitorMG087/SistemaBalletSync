@@ -41,14 +41,14 @@ public class RelatorioController : ControllerBase
                     <tbody>
                         {string.Join("", relatorio.Dados.Select(d => $"<tr><td>{d.Coluna1}</td><td>{d.Coluna2}</td><td>{d.Coluna3}</td></tr>"))}
                     </tbody>
-                </table>
+                </table>'
             </body>
             </html>";
 
         var renderer = new IronPdf.HtmlToPdf();
         var pdfDocument = renderer.RenderHtmlAsPdf(htmlContent);
 
-       
+
         return File(pdfDocument.BinaryData, "application/pdf", $"Relatorio_Frequencia_{mes}_{ano}.pdf");
     }
 }

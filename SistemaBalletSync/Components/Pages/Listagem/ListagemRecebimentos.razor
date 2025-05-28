@@ -40,8 +40,10 @@
                     </div>
 
                     <div class="d-flex justify-content-between mt-3">
-                        <button class="btn btn-secondary" type="button" @onclick="Voltar">Voltar</button>
-                        <button class="btn btn-primary" type="submit">Salvar</button>
+                        <button class="btn btn-secondary" type="button" @onclick="Voltar" disabled="@IsSaving">Voltar</button>
+                        <button class="btn btn-primary" type="submit" disabled="@IsSaving">
+                            @(IsSaving ? "Salvando..." : "Salvar")
+                        </button>
                     </div>
                 </EditForm>
             </div>
@@ -50,36 +52,62 @@
 </div>
 
 @code {
-    private Recebimento RecebimentoModel = new Recebimento();
+    private Recebimento RecebimentoModel = new Recebimento
+        {
+            Data = DateTime.Today // Inicializa para evitar valor inválido
+        };
+
     [Parameter] public int id { get; set; }
+
+    private bool IsSaving = false;
 
     protected override async Task OnInitializedAsync()
     {
         if (id != 0)
         {
-          
             RecebimentoModel = await RecebimentoService.GetRecebimentoByIdAsync(id);
+            if (RecebimentoModel.Data == DateTime.MinValue)
+            {
+                RecebimentoModel.Data = DateTime.Today;
+            }
         }
     }
 
     private async Task HandleValidSubmit()
     {
-        if (id == 0)
-        {
-           
-            await RecebimentoService.AddRecebimentoAsync(RecebimentoModel);
-        }
-        else
-        {
-            
-            await RecebimentoService.UpdateRecebimentoAsync(RecebimentoModel, id);
-        }
+        if (IsSaving) return;
 
-        Navigation.NavigateTo("/recebimentos"); 
+        IsSaving = true;
+        try
+        {
+            if (id == 0)
+            {
+                await RecebimentoService.AddRecebimentoAsync(RecebimentoModel);
+            }
+            else
+            {
+                await RecebimentoService.UpdateRecebimentoAsync(RecebimentoModel, id);
+            }
+
+            Navigation.NavigateTo("/recebimentos");
+        }
+        catch (Exception ex)
+        {
+            // Apenas loga o erro para não travar a UI
+            Console.Error.WriteLine(ex.Message);
+        }
+        finally
+        {
+            IsSaving = false;
+            StateHasChanged(); // garante atualização do UI após salvar
+        }
     }
 
     private void Voltar()
     {
-        Navigation.NavigateTo("/recebimentos"); 
+        if (!IsSaving)
+        {
+            Navigation.NavigateTo("/recebimentos");
+        }
     }
 }

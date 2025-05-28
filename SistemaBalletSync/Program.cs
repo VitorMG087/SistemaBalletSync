@@ -34,7 +34,7 @@ builder.Services.AddScoped<DespesaService>(provider =>
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient("MyClient", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7051/");  // ⚠️ Corrigido o URL duplicado
+    client.BaseAddress = new Uri("https://localhost:7051/");  
 });
 
 
