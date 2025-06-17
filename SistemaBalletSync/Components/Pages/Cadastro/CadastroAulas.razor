@@ -19,39 +19,44 @@
 					<ValidationSummary />
 
 					<div class="row">
-						<div class="col-md-6">
+						<div class="col-md-6 mb-3">
 							<label for="local" class="form-label">Local<span class="text-danger">*</span></label>
 							<InputText id="local" class="form-control" @bind-Value="AulaModel.Local" />
+							<ValidationMessage For="@(() => AulaModel.Local)" />
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-6 mb-3">
 							<label for="DataHora" class="form-label">Data e Hora<span class="text-danger">*</span></label>
 							<input type="datetime-local"
 								   class="form-control"
 								   id="meeting-time"
 								   name="meeting-time"
 								   @bind="DataAula" />
+							@if (DataAula == null)
+							{
+								<div class="text-danger small mt-1">Data e Hora são obrigatórios.</div>
+							}
 						</div>
-						<div class="col-md-6">
+						<div class="col-md-6 mb-3">
 							<label for="NomeProfessor" class="form-label">Nome do Professor<span class="text-danger">*</span></label>
-							<InputSelect id="NomeProfessor" class="form-control" placeholder="Selecione o professor" @bind-Value="AulaModel.IdProfessor">
-								<option value="" disabled selected>Selecione o professor</option>
+							<InputSelect id="NomeProfessor" class="form-control" @bind-Value="AulaModel.IdProfessor">
+								<option value="0" disabled>Selecione o professor</option>
 								@foreach (var professor in Professores)
 								{
 									<option value="@professor.Id">@professor.Nome</option>
 								}
 							</InputSelect>
+							<ValidationMessage For="@(() => AulaModel.IdProfessor)" />
 						</div>
 
 						@if (idAula != 0)
 						{
-
 							<div class="mt-4">
 								<h5>Gerenciar Alunos na Aula</h5>
 								<div class="row">
 									<div class="col-md-8">
 										<label for="AlunoSelecionado" class="form-label">Adicionar Aluno</label>
 										<InputSelect id="AlunoSelecionado" class="form-control" @bind-Value="AlunoSelecionadoId">
-											<option value="" disabled selected>Selecione um aluno</option>
+											<option value="">Selecione um aluno</option>
 											@foreach (var aluno in AlunosDisponiveis)
 											{
 												<option value="@aluno.Id">@aluno.Nome (@aluno.CPF)</option>
@@ -59,7 +64,7 @@
 										</InputSelect>
 									</div>
 									<div class="col-md-4 d-flex align-items-end">
-										<button class="btn btn-primary w-100" @onclick="AdicionarAluno">Adicionar</button>
+										<button class="btn btn-primary w-100" type="button" @onclick="AdicionarAluno" disabled="@(AlunoSelecionadoId == null)">Adicionar</button>
 									</div>
 								</div>
 
@@ -80,7 +85,7 @@
 												<td>@aluno.CPF</td>
 												<td>@aluno.Nome</td>
 												<td>
-													<button class="btn btn-danger btn-sm" @onclick="() => RemoverAluno(aluno.Id)">Remover</button>
+													<button class="btn btn-danger btn-sm" type="button" @onclick="() => RemoverAluno(aluno.Id)">Remover</button>
 												</td>
 											</tr>
 										}
@@ -92,7 +97,7 @@
 					<div class="row mt-3">
 						<div class="d-flex justify-content-between">
 							<button class="btn btn-secondary" type="button" @onclick="Voltar">Voltar</button>
-							<button class="btn btn-primary" type="submit">Salvar</button>
+							<button class="btn btn-primary" type="submit" disabled="@(!FormularioValido())">Salvar</button>
 						</div>
 					</div>
 				</EditForm>
@@ -110,7 +115,6 @@
 	private List<Aluno> AlunosDisponiveis = new List<Aluno>();
 	private int? AlunoSelecionadoId;
 
-
 	private DateTime? DataAula { get; set; } = DateTime.Now;
 
 	protected override async Task OnInitializedAsync()
@@ -125,59 +129,65 @@
 			AlunosDisponiveis = await AulaService.GetAlunosDisponiveisAsync(idAula);
 		}
 	}
+
 	private async Task AdicionarAluno()
 	{
 		if (AlunoSelecionadoId.HasValue)
 		{
 			await AulaService.AdicionarAlunoAulaAsync(idAula, AlunoSelecionadoId.Value);
-
-			
 			AlunosAula = await AulaService.GetAlunosByAulaIdAsync(idAula);
 			AlunosDisponiveis = await AulaService.GetAlunosDisponiveisAsync(idAula);
-
 			AlunoSelecionadoId = null;
 		}
 	}
+
 	private async Task RemoverAluno(int alunoId)
 	{
 		await AulaService.RemoverAlunoAulaAsync(idAula, alunoId);
-
-		
 		AlunosAula = await AulaService.GetAlunosByAulaIdAsync(idAula);
 		AlunosDisponiveis = await AulaService.GetAlunosDisponiveisAsync(idAula);
 	}
 
+	private bool FormularioValido()
+	{
+		
+		return !string.IsNullOrWhiteSpace(AulaModel.Local)
+			&& DataAula.HasValue && DataAula.Value != default
+			&& AulaModel.IdProfessor > 0;
+	}
+
 	private async Task HandleValidSubmit()
 	{
-
-		if (string.IsNullOrEmpty(AulaModel.Local) || AulaModel.DataHora == default(DateTime) || AulaModel.IdProfessor == 0)
+		try
 		{
-			
-		}
+			if (!FormularioValido())
+			{
+				await JSRuntime.InvokeVoidAsync("alert", "Por favor, preencha todos os campos obrigatórios corretamente.");
+				return;
+			}
 
-		AulaModel.DataHora = DataAula;
+			AulaModel.DataHora = DataAula.Value;
 
-		if (idAula == 0)
-		{		
-			await AulaService.AddAulaAsync(AulaModel);
-		}
-		else
-		{		
-			await AulaService.UpdateAulaAsync(AulaModel, idAula);
-		}
+			if (idAula == 0)
+			{
+				await AulaService.AddAulaAsync(AulaModel);
+			}
+			else
+			{
+				await AulaService.UpdateAulaAsync(AulaModel, idAula);
+			}
 
-		await JSRuntime.InvokeVoidAsync("alert", "Aula gravada com sucesso!");
+			await JSRuntime.InvokeVoidAsync("alert", "Aula gravada com sucesso!");
+			Navigation.NavigateTo("/aulas");
+		}
+		catch (Exception ex)
+		{
+			await JSRuntime.InvokeVoidAsync("alert", $"Erro ao salvar aula: {ex.Message}");
+		}
 	}
 
 	private void Voltar()
 	{
 		Navigation.NavigateTo("/aulas");
 	}
-
-	public class ProfessorOptions
-	{
-		public int Id { get; set; }
-		public string Nome { get; set; }
-	}
 }
-

@@ -41,9 +41,7 @@
 
                     <div class="d-flex justify-content-between mt-3">
                         <button class="btn btn-secondary" type="button" @onclick="Voltar" disabled="@IsSaving">Voltar</button>
-                        <button class="btn btn-primary" type="submit" disabled="@IsSaving">
-                            @(IsSaving ? "Salvando..." : "Salvar")
-                        </button>
+                        <button class="btn btn-primary" type="submit" disabled="@IsSaving">Salvar</button>
                     </div>
                 </EditForm>
             </div>
@@ -54,12 +52,15 @@
 @code {
     private Recebimento RecebimentoModel = new Recebimento
         {
-            Data = DateTime.Today // Inicializa para evitar valor inválido
+            Data = DateTime.Today
         };
 
     [Parameter] public int id { get; set; }
 
     private bool IsSaving = false;
+
+    // Adicionando a variável filtros
+    private FiltroMensalidade filtros = new FiltroMensalidade();
 
     protected override async Task OnInitializedAsync()
     {
@@ -93,13 +94,26 @@
         }
         catch (Exception ex)
         {
-            // Apenas loga o erro para não travar a UI
             Console.Error.WriteLine(ex.Message);
         }
         finally
         {
             IsSaving = false;
-            StateHasChanged(); // garante atualização do UI após salvar
+            StateHasChanged();
+        }
+    }
+
+    private async Task GerarMensalidades()
+    {
+        try
+        {
+            await RecebimentoService.GerarMensalidadesAsync(filtros.Mes, filtros.Ano);
+            // Não é necessário chamar CarregarMensalidades aqui, pois não estamos na tela de listagem
+            Console.WriteLine("Mensalidades geradas com sucesso.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao gerar mensalidades: {ex.Message}");
         }
     }
 
@@ -109,5 +123,11 @@
         {
             Navigation.NavigateTo("/recebimentos");
         }
+    }
+
+    public class FiltroMensalidade
+    {
+        public int Mes { get; set; } = DateTime.Today.Month; // Definindo um valor padrão
+        public int Ano { get; set; } = DateTime.Today.Year; // Definindo um valor padrão
     }
 }

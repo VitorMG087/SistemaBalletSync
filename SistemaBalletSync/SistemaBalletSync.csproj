@@ -9,15 +9,18 @@
   <ItemGroup>
     <Compile Remove="Components\Pages\Listagem\ListagemDespesas.cs" />
     <Compile Remove="Service\Despesa.cs" />
+    <Compile Remove="Service\Planio.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Remove="Components\Pages\Cadastro\EditarAulaAluno.razor" />
     <Content Remove="Service\DespesaService.razor" />
+    <Content Remove="Service\PlanoService.razor" />
   </ItemGroup>
 
   <ItemGroup>
         <PackageReference Include="Dapper" Version="2.1.66" />
+        <PackageReference Include="DinkToPdf" Version="1.0.8" />
         <PackageReference Include="IronPdf" Version="2024.12.9" />
         <PackageReference Include="Npgsql" Version="6.0.6" />
         <PackageReference Include="QuestPDF" Version="2024.12.0" />

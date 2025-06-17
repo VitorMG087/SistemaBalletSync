@@ -4,7 +4,7 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
-<PageTitle> Alunos - BalletSync</PageTitle>
+<PageTitle>Alunos - BalletSync</PageTitle>
 
 <div class="row card p-3 mb-3">
 	<div class="d-flex justify-content-between">
@@ -13,7 +13,7 @@
 	</div>
 </div>
 
-@if (alunos == null)
+@if (alunos == null || planos == null)
 {
 	<p>Carregando...</p>
 }
@@ -23,7 +23,6 @@ else if (alunos.Count == 0)
 }
 else
 {
-
 	<table class="table table-bordered">
 		<thead>
 			<tr>
@@ -37,15 +36,20 @@ else
 				<th scope="col">Bairro</th>
 				<th scope="col">Endereco</th>
 				<th scope="col">Complemento</th>
+				<th scope="col">Tipo de Plano</th>
+				<th scope="col">Status</th>
+				
+
 
 			</tr>
 		</thead>
 		<tbody>
 			@foreach (var aluno in alunos)
 			{
+				var plano = GetPlanoById(aluno.IdPlano);
 				<tr>
 					<th scope="row">@aluno.Id</th>
-					<td>@aluno.Nome </td>
+					<td>@aluno.Nome</td>
 					<td>@aluno.CPF</td>
 					<td>@aluno.Telefone</td>
 					<td>@aluno?.Cep</td>
@@ -54,8 +58,9 @@ else
 					<td>@aluno?.Bairro</td>
 					<td>@aluno?.Endereco</td>
 					<td>@aluno?.Complemento</td>
+					<td>@aluno.NomePlano</td>
+					<td>@(aluno.Ativo ? "Ativo" : "Inativo")</td>
 					<td>
-
 						<button class="btn btn-sm btn-primary" @onclick="() => EditarAluno(aluno.Id)">Editar</button>
 						<button class="btn btn-sm btn-danger" @onclick="() => ApagarAluno(aluno.Id)">Apagar</button>
 					</td>
@@ -66,13 +71,18 @@ else
 }
 
 @code {
-	@using Microsoft.AspNetCore.Components;
-
 	private List<Aluno> alunos;
+	private List<Plano> planos;
 
 	protected override async Task OnInitializedAsync()
 	{
 		alunos = await AlunoService.GetAlunosAsync();
+		planos = await AlunoService.GetPlanosAsync();
+	}
+
+	private Plano GetPlanoById(int idPlano)
+	{
+		return planos?.Find(p => p.Id == idPlano);
 	}
 
 	private void NovoAluno()
@@ -95,4 +105,3 @@ else
 		}
 	}
 }
-

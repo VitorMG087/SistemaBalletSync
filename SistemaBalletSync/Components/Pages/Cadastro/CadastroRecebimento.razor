@@ -2,19 +2,20 @@
 @inject RecebimentoService RecebimentoService
 @inject NavigationManager Navigation
 
-<PageTitle>Lista de Recebimentos</PageTitle>
+<PageTitle>Recebimentos e Mensalidades</PageTitle>
 
 <div class="row">
+    <!-- CARD 1: Lista de Recebimentos -->
     <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header align-items-center d-flex justify-content-between">
-                <h4 class="card-title mb-0 flex-grow-1">Lista de Recebimentos</h4>
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Lista de Recebimentos</h4>
                 <a href="/recebimentos/novo" class="btn btn-primary">Cadastrar Novo</a>
             </div>
             <div class="card-body">
                 @if (recebimentos != null && recebimentos.Any())
                 {
-                    <table class="table">
+                    <table class="table table-bordered">
                         <thead>
                             <tr>
                                 <th>Descrição</th>
@@ -48,19 +49,110 @@
             </div>
         </div>
     </div>
+
+    <!-- CARD 2: Consulta e Mensalidades em Aberto -->
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Mensalidades em Aberto</h4>
+            </div>
+            <div class="card-body">
+                <!-- Formulário de Filtro -->
+                <EditForm Model="@filtros" OnValidSubmit="ConsultarMensalidades">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-2">
+                            <label class="form-label"><strong>Mês</strong></label>
+                            <InputNumber class="form-control" @bind-Value="filtros.Mes" min="1" max="12" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label"><strong>Ano</strong></label>
+                            <InputNumber class="form-control" @bind-Value="filtros.Ano" />
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Consultar</button>
+                        </div>
+                    </div>
+                </EditForm>
+
+                <!-- Lista de Mensalidades -->
+                @if (mensalidadesAbertas != null && mensalidadesAbertas.Any())
+                {
+                    <h5>Mensalidades em Aberto - @filtros.Mes/@filtros.Ano</h5>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Aluno</th>
+                                <th>Valor</th>
+                                <th>Vencimento</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var mensalidade in mensalidadesAbertas)
+                            {
+                                <tr>
+                                    <td>@mensalidade.NomeAluno</td>
+                                    <td>@mensalidade.Valor.ToString("C2")</td>
+                                    <td>@mensalidade.DataVencimento.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <button class="btn btn-success btn-sm" @onclick="() => DarBaixaMensalidade(mensalidade.Id)">Dar Baixa</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>Nenhuma mensalidade em aberto para o período selecionado.</p>
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
     private List<Recebimento> recebimentos = new();
+    private List<Mensalidade> mensalidadesAbertas = new();
+    private FiltroMensalidade filtros = new();
 
     protected override async Task OnInitializedAsync()
     {
+        filtros.Mes = DateTime.Today.Month;
+        filtros.Ano = DateTime.Today.Year;
+
         await CarregarRecebimentos();
+        await CarregarMensalidades();
     }
 
     private async Task CarregarRecebimentos()
     {
         recebimentos = await RecebimentoService.GetAllRecebimentosAsync();
+    }
+
+    private async Task CarregarMensalidades()
+    {
+        mensalidadesAbertas = await RecebimentoService.GetMensalidadesAbertasDoMesAsync(filtros.Mes, filtros.Ano);
+    }
+
+    private async Task ConsultarMensalidades()
+    {
+        await CarregarMensalidades();
+    }
+
+    private async Task DarBaixaMensalidade(int id)
+    {
+        try
+        {
+            await RecebimentoService.DarBaixaMensalidadeAsync(id);
+            await CarregarRecebimentos();
+            await CarregarMensalidades();
+        }
+        catch (Exception ex)
+        {
+            // Tratar erro (exibir mensagem, logar, etc)
+            Console.WriteLine($"Erro ao dar baixa: {ex.Message}");
+        }
     }
 
     private async Task DeletarRecebimento(int id)
@@ -70,13 +162,19 @@
         {
             await RecebimentoService.DeleteRecebimentoAsync(id);
             await CarregarRecebimentos();
+            await CarregarMensalidades();
         }
     }
 
-    
     private Task<bool> ConfirmarExclusao()
     {
-        
+        // Aqui você pode implementar um modal de confirmação de exclusão
         return Task.FromResult(true);
+    }
+
+    public class FiltroMensalidade
+    {
+        public int Mes { get; set; }
+        public int Ano { get; set; }
     }
 }

@@ -1,20 +1,12 @@
-﻿<!DOCTYPE html>
-<script>
-    window.downloadFileFromStream = (fileName, byteArray) => {
+﻿<script>
+    window.downloadFileFromStream = async (fileName, byteArray) => {
         const blob = new Blob([new Uint8Array(byteArray)], { type: 'application/pdf' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = fileName;
-        link.click();
-        URL.revokeObjectURL(link.href);
+        const url = URL.createObjectURL(blob);
+        const anchorElement = document.createElement('a');
+        anchorElement.href = url;
+        anchorElement.download = fileName ?? 'download.pdf';
+        anchorElement.click();
+        anchorElement.remove();
+        URL.revokeObjectURL(url);
     };
 </script>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title></title>
-</head>
-<body>
-    
-</body>
-</html>

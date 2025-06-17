@@ -3,149 +3,167 @@
 @inject AlunoService AlunoService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
+@inject PlanoService PlanoService
+
 
 <PageTitle>Alunos - BalletSync</PageTitle>
 
 <div class="row">
-	<div class="col-lg-12">
-		<div class="card">
-			<div class="card-header align-items-center d-flex">
-				<h4 class="card-title mb-0 flex-grow-1">@(string.IsNullOrEmpty(idAluno) ? "Cadastrar" : "Editar") Aluno</h4>
-			</div>
-			<div class="card-body">
-				<EditForm Model="AlunoModel" OnValidSubmit="HandleValidSubmit">
-					<DataAnnotationsValidator />
-					<ValidationSummary />
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">
+                    @(string.IsNullOrEmpty(idAluno) ? "Cadastrar" : "Editar") Aluno
+                </h4>
+            </div>
+            <div class="card-body">
+                <EditForm Model="AlunoModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+           
+                    <div class="row">
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Nome Completo<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="AlunoModel.Nome" />
+                            <ValidationMessage For="@(() => AlunoModel.Nome)" />
+                        </div>
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">CPF<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="AlunoModel.CPF" />
+                            <ValidationMessage For="@(() => AlunoModel.CPF)" />
+                        </div>
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Telefone<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="AlunoModel.Telefone" />
+                            <ValidationMessage For="@(() => AlunoModel.Telefone)" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">CEP<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="AlunoModel.Cep" />
+                            <ValidationMessage For="@(() => AlunoModel.Cep)" />
+                        </div>
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Estado<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="AlunoModel.Estado" />
+                            <ValidationMessage For="@(() => AlunoModel.Estado)" />
+                        </div>
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Cidade<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="AlunoModel.Cidade" />
+                            <ValidationMessage For="@(() => AlunoModel.Cidade)" />
+                        </div>
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Bairro</label>
+                            <InputText class="form-control" @bind-Value="AlunoModel.Bairro" />
+                        </div>
+                        <div class="col-xxl-6 col-md-6">
+                            <label class="form-label">Endereço<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="AlunoModel.Endereco" />
+                            <ValidationMessage For="@(() => AlunoModel.Endereco)" />
+                        </div>
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Complemento</label>
+                            <InputText class="form-control" @bind-Value="AlunoModel.Complemento" />
+                        </div>
 
-					<div class="row">
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="nomecompleto" class="form-label">Nome Completo<span class="text-danger">*</span></label>
-								<InputText id="nomecompleto" class="form-control" @bind-Value="AlunoModel.Nome" autocomplete="no" spellcheck="false" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="cpf" class="form-label">CPF<span class="text-danger">*</span></label>
-								<InputText id="cpf" class="form-control" @bind-Value="AlunoModel.CPF" autocomplete="no" />
-								<ValidationMessage For="@(() => AlunoModel.CPF)" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="telefoneparacontato" class="form-label">Telefone para Contato<span class="text-danger">*</span></label>
-								<InputText id="telefoneparacontato" class="form-control" @bind-Value="AlunoModel.Telefone" autocomplete="no" />
-								<ValidationMessage For="@(() => AlunoModel.Telefone)" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="cep" class="form-label">CEP<span class="text-danger">*</span></label>
-								<InputText id="cep" class="form-control" @bind-Value="AlunoModel.Cep" autocomplete="no" />
-								<ValidationMessage For="@(() => AlunoModel.Cep)" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="estado" class="form-label">Estado<span class="text-danger">*</span></label>
-								<input id="estado" class="form-control" @bind="AlunoModel.Estado" autocomplete="no" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="cidade" class="form-label">Cidade<span class="text-danger">*</span></label>
-								<input id="cidade" class="form-control" @bind="AlunoModel.Cidade" autocomplete="no" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="bairro" class="form-label">Bairro</label>
-								<input id="bairro" class="form-control" @bind="AlunoModel.Bairro" autocomplete="no" />
-								
-							</div>
-						</div>
-						<div class="col-xxl-6 col-md-6">
-							<div>
-								<label for="endereco" class="form-label">Endereco<span class="text-danger">*</span></label>
-								<input id="endereco" class="form-control" @bind="AlunoModel.Endereco" autocomplete="no" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>	
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="complemento" class="form-label">Complemento</label>
-								<input id="bairro" class="form-control" @bind="AlunoModel.Complemento" autocomplete="no" />
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Plano<span class="text-danger">*</span></label>
+                            <InputSelect class="form-control" @bind-Value="AlunoModel.IdPlano">
+                                <option value="0">Selecione um plano...</option>
+                                @foreach (var plano in Planos)
+                                {
+                                    <option value="@plano.Id">@plano.Nome - R$ @plano.Valor</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => AlunoModel.IdPlano)" />
+                        </div>
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Status do Aluno</label>
+                            <InputRadioGroup @bind-Value="AlunoModel.Ativo" class="form-check">
+                                <div class="form-check">
+                                    <InputRadio class="form-check-input" Value="true" id="ativo" />
+                                    <label class="form-check-label" for="ativo">Ativo</label>
+                                </div>
+                                <div class="form-check">
+                                    <InputRadio class="form-check-input" Value="false" id="inativo" />
+                                    <label class="form-check-label" for="inativo">Inativo</label>
+                                </div>
+                            </InputRadioGroup>
+                        </div>
 
-							</div>
-						</div>
-					</div>
-					<div class="row mt-3">
-						<div class="d-flex justify-content-between">
-							<button class="btn btn-secondary" type="button" @onclick="Voltar">Voltar</button>
-							<button class="btn btn-primary" type="submit">Salvar</button>
-						</div>
-					</div>
-				</EditForm>
-			</div>
-		</div>
-	</div>
+                    </div>                                                            
+                      
+                    <div class="row mt-3">
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-secondary" type="button" @onclick="Voltar">Voltar</button>
+                            <button class="btn btn-primary" type="submit">Salvar</button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
-	private Aluno AlunoModel = new Aluno();
+    private List<Plano> Planos = new();
+    private Aluno AlunoModel = new Aluno();
 
-	[Parameter] public string idAluno { get; set; } = string.Empty;
+    [Parameter]
+    public string idAluno { get; set; }
 
-	private bool exibeMensagemObrigatorio;
+    protected override async Task OnInitializedAsync()
+    {
+        Planos = await AlunoService.GetPlanosAsync();
+        if (!string.IsNullOrEmpty(idAluno))
+        {
+            int id = int.Parse(idAluno);
+            var alunoExistente = await AlunoService.GetAlunoByIdAsync(id);
+            if (alunoExistente != null)
+            {
+                AlunoModel = alunoExistente;
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Aluno não encontrado.");
+                Navigation.NavigateTo("/alunos");
+            }
+        }
 
-	protected override async Task OnInitializedAsync()
-	{
-		if (!string.IsNullOrEmpty(idAluno))
-		{
-			AlunoModel = await AlunoService.GetAlunoByIdAsync(idAluno);
-		}
-	}
+    }
 
-	private async Task HandleValidSubmit()
-	{
-		if (string.IsNullOrEmpty(AlunoModel.Nome) | string.IsNullOrEmpty(AlunoModel.Telefone) | 
-			string.IsNullOrEmpty(AlunoModel.CPF) | string.IsNullOrEmpty(AlunoModel.Endereco) | 
-			string.IsNullOrEmpty(AlunoModel.Estado) | string.IsNullOrEmpty(AlunoModel.Cidade))
-		{
-			exibeMensagemObrigatorio = true;
-			return;
-		}
+    private async Task HandleValidSubmit()
 
-		if (await AlunoService.ValidarCpfAsync(AlunoModel.CPF))
-		{
-			await JSRuntime.InvokeVoidAsync("alert", "CPF já cadastrado no sistema!");
-			return;
-		}
+    {
 
-		if (string.IsNullOrEmpty(idAluno))
-		{
-			await AlunoService.AddAlunoAsync(AlunoModel);
+        try
+        {
+            if (string.IsNullOrEmpty(idAluno))
+                await AlunoService.AddAlunoAsync(AlunoModel);
+            else
+                await AlunoService.UpdateAlunoAsync(AlunoModel, idAluno);
 
-		}
-		else
-		{
-			await AlunoService.UpdateAlunoAsync(AlunoModel, idAluno);
-		}
+            Navigation.NavigateTo("/alunos");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Ocorreu um erro ao salvar o aluno: {ex.Message}");
+        }
 
-		AlunoModel = new Aluno();
-		Navigation.NavigateTo("/alunos"); 
-	}
+        if (string.IsNullOrEmpty(idAluno))
+            await AlunoService.AddAlunoAsync(AlunoModel);
+        else
+            await AlunoService.UpdateAlunoAsync(AlunoModel, idAluno);
 
-	private void Voltar()
-	{
-		Navigation.NavigateTo("/alunos", true); 
-	}
+        Navigation.NavigateTo("/alunos");
+    }
+
+   
+
+    private void Voltar() => Navigation.NavigateTo("/alunos");
+
+    
+    
 }
