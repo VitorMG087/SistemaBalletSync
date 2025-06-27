@@ -1,0 +1,77 @@
+﻿@page "/relatorios/aulas"
+@inject AulaService AulaService
+
+<h3>Relatório de Aulas</h3>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <label>Mês</label>
+        <select class="form-control" @bind="mes" @bind:event="onchange">
+            @for (int i = 1; i <= 12; i++)
+            {
+                <option value="@i">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label>Ano</label>
+        <InputNumber class="form-control" @bind-Value="ano" @bind-Value:event="oninput" />
+    </div>
+</div>
+<div>
+    <button class="btn btn-primary me-2" @onclick="GerarRelatorio">Gerar Relatório</button>
+
+    <a class="btn btn-success"
+       href="@($"/relatorio/aula/gerar-pdf-aulas?mes={mes}&ano={ano}")"
+       target="_blank"
+       rel="noopener noreferrer"
+       disabled="@(aulas == null || !aulas.Any())"
+       style="pointer-events:@((aulas == null || !aulas.Any()) ? "none" : "auto"); opacity:@((aulas == null || !aulas.Any()) ? "0.5" : "1")">
+        Gerar PDF
+    </a>
+</div>
+
+
+@if (aulas != null && aulas.Any())
+{
+    <div class="mt-4">
+        <h5>Aulas de @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mes) / @ano</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Local da Aula</th>
+                    <th>Data e Hora</th>
+                    <th>Nome do Professor</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var aula in aulas)
+                {
+                    <tr>
+                        <td>@aula.Id</td>
+                        <td>@aula.Local</td>
+                        <td>@(aula.DataHora?.ToString("dd/MM/yyyy HH:mm") ?? "")</td>
+                        <td>@aula.NomeProfessor</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="mt-4">Selecione mês e ano, e clique em "Gerar Relatório".</p>
+}
+
+@code {
+    private int mes = DateTime.Now.Month;
+    private int ano = DateTime.Now.Year;
+
+    private List<Aula> aulas;
+
+    private async Task GerarRelatorio()
+    {
+        aulas = await AulaService.GetAulasPorMesEAnoAsync(mes, ano);
+    }
+}

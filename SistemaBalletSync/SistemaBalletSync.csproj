@@ -7,9 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Components\Pages\NovaPasta\**" />
+    <Content Remove="Components\Pages\NovaPasta\**" />
+    <EmbeddedResource Remove="Components\Pages\NovaPasta\**" />
+    <None Remove="Components\Pages\NovaPasta\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Components\Pages\Listagem\ListagemDespesas.cs" />
     <Compile Remove="Service\Despesa.cs" />
     <Compile Remove="Service\Planio.cs" />
+    <Compile Remove="Service\RelatorioController - Cópia.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,7 +37,6 @@
 
   <ItemGroup>
     <Folder Include="ViewModel\" />
-    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
   <ItemGroup>

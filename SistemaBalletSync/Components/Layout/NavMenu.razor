@@ -40,25 +40,57 @@
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="relatorios">
+            <a class="nav-link" href="#" @onclick="ToggleRelatorios">
                 <i class="bi bi-flag"></i> Relatórios
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="sair">
-                <i class="bi bi-arrow-return-left"></i> Sair
-            </NavLink>
+            </a>
+            @if (mostrarRelatorios)
+            {
+                <ul class="nav flex-column ms-4">
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="relatorios/frequencia">
+                           Frequência
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="relatorios/recebimentos">
+                            Recebimentos
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="relatorios/despesas">
+                             Despesas
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="relatorios/professores">
+                            Professores
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="relatorios/aulas">
+                            Aulas
+                        </NavLink>
+                    </li>
+                </ul>
+            }
         </div>
     </nav>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
+    private bool mostrarRelatorios = false;
+
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void ToggleRelatorios()
+    {
+        mostrarRelatorios = !mostrarRelatorios;
     }
 }

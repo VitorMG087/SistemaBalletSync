@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Threading.Tasks;
-using static SistemaBalletSync.Components.Pages.Cadastro.Relatorios;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using SistemaBalletSync.Components.Pages.Cadastro;
@@ -134,8 +133,49 @@ public class AulaService
 			}
 		}
 	}
+    public async Task<List<Aula>> GetAulasPorMesEAnoAsync(int mes, int ano)
+    {
+        var aulas = new List<Aula>();
 
-	public async Task<List<Aluno>> GetAlunosByAulaIdAsync(int idAula)
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            await connection.OpenAsync();
+
+            var query = @"
+            SELECT a.id, a.local, a.datahora, a.idprofessor, p.nome 
+            FROM aulas a 
+            INNER JOIN professores p ON p.id = a.idprofessor
+            WHERE EXTRACT(MONTH FROM a.datahora) = @Mes
+              AND EXTRACT(YEAR FROM a.datahora) = @Ano
+            ORDER BY a.datahora";
+
+            using (var cmd = new NpgsqlCommand(query, connection))
+            {
+                cmd.Parameters.AddWithValue("Mes", mes);
+                cmd.Parameters.AddWithValue("Ano", ano);
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        aulas.Add(new Aula
+                        {
+                            Id = reader.GetInt32(0),
+                            Local = reader.GetString(1),
+                            DataHora = reader.GetDateTime(2),
+                            IdProfessor = reader.GetInt32(3),
+                            NomeProfessor = reader.GetString(4)
+                        });
+                    }
+                }
+            }
+        }
+
+        return aulas;
+    }
+
+
+    public async Task<List<Aluno>> GetAlunosByAulaIdAsync(int idAula)
 	{
 		var alunos = new List<Aluno>();
 
@@ -240,8 +280,25 @@ public class AulaService
             }
         }
     }
+    public async Task<RelatorioAula> ObterRelatorioAulasPorMes(int mes, int ano)
+    {
+        var aulas = await GetAulasPorMesEAnoAsync(mes, ano);
 
-    
+        var itens = aulas.Select(a => new ItemRelatorioAula
+        {
+            Data = a.DataHora?.ToString("dd/MM/yyyy") ?? "",
+            Professor = a.NomeProfessor ?? "",
+            Tema = a.Local ?? "" // ou outro campo que represente o tema da aula
+        }).ToList();
+
+        return new RelatorioAula
+        {
+            TituloColunaData = "Data",
+            TituloColunaProfessor = "Professor",
+            TituloColunaTema = "Local da Aula",
+            Itens = itens
+        };
+    }
 }
 
 public class Aula
@@ -252,4 +309,19 @@ public class Aula
 	public DateTime? DataHora { get; set; }
 	public int IdProfessor { get; set; }
 	public string? NomeProfessor { get; set; }
+    public int? StatusAula { get; set; }  // Se quiser nullable
+}
+public class RelatorioAula
+{
+    public string TituloColunaData { get; set; }
+    public string TituloColunaProfessor { get; set; }
+    public string TituloColunaTema { get; set; }
+    public List<ItemRelatorioAula> Itens { get; set; }
+}
+
+public class ItemRelatorioAula
+{
+    public string Data { get; set; }
+    public string Professor { get; set; }
+    public string Tema { get; set; }
 }

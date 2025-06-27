@@ -1,39 +1,30 @@
 ﻿using SistemaBalletSync.Components;
-using SistemaBalletSync.Services;
+
+using DinkToPdf;
+using DinkToPdf.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
+var context = new CustomAssemblyLoadContext();
+var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "wkhtmltox", "libwkhtmltox.dll");
+context.LoadUnmanagedLibrary(dllPath);
 
+// Conexão com PostgreSQL
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Configuração do IronPDF
-try
-{
-    // Configurar IronPDF
-    IronPdf.License.LicenseKey = "YOUR_LICENSE_KEY"; // Substitua pela sua licença, se tiver
-
-    // Inicializa o IronPDF (opcional, mas recomendado)
-    IronPdf.Installation.Initialize();
-
-    Console.WriteLine("IronPDF configurado com sucesso!");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Erro ao configurar IronPDF: {ex.Message}");
-    // O IronPDF pode funcionar em modo trial sem licença
-}
-
-// Registrar serviços no DI container
+// Serviços do sistema
 builder.Services.AddSingleton(new RecebimentoService(connectionString));
 
-// Registrar PdfService apenas uma vez, com namespace correto
+// ⚠️ DinkToPdf - Configuração correta do conversor PDF
+builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+
+
 builder.Services.AddScoped<PdfService>();
 
+builder.Services.AddScoped<PdfService>();
 builder.Services.AddScoped<PlanoService>();
 
-builder.Services.AddScoped<ProfessorService>(provider =>
-{
-    return new ProfessorService(connectionString);
-});
+builder.Services.AddScoped<ProfessorService>(_ =>
+    new ProfessorService(connectionString));
 
 builder.Services.AddScoped<AulaService>(provider =>
 {
@@ -41,24 +32,20 @@ builder.Services.AddScoped<AulaService>(provider =>
     return new AulaService(connectionString, professorService);
 });
 
-builder.Services.AddScoped<AlunoService>(provider =>
-{
-    return new AlunoService(connectionString);
-});
+builder.Services.AddScoped<AlunoService>(_ =>
+    new AlunoService(connectionString));
 
-builder.Services.AddScoped<DespesaService>(provider =>
-{
-    return new DespesaService(connectionString);
-});
+builder.Services.AddScoped<DespesaService>(_ =>
+    new DespesaService(connectionString));
 
-// Configurar HttpClient para consumo HTTP
+// Configuração do HttpClient
 builder.Services.AddHttpClient();
+
 builder.Services.AddHttpClient("MyClient", client =>
 {
     client.BaseAddress = new Uri("https://localhost:7051/");
 });
 
-// Registrar HttpClient via factory
 builder.Services.AddScoped(sp =>
 {
     var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
@@ -67,7 +54,7 @@ builder.Services.AddScoped(sp =>
     return httpClient;
 });
 
-// Configurações MVC e Razor Components
+// MVC + Blazor Server
 builder.Services.AddControllers();
 
 builder.Services.AddRazorComponents()
@@ -75,6 +62,7 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
+// Middlewares padrão
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

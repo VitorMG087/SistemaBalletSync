@@ -5,6 +5,7 @@ using System.Data;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using static SistemaBalletSync.Components.Pages.Cadastro.CadastroAulas;
+using SistemaBalletSync.Components.Pages.Relatorios;
 
 public class ProfessorService
 {
@@ -169,6 +170,60 @@ public class ProfessorService
             }
         }
     }
+    public async Task<List<ItemRelatorioProfessor>> ObterProfessoresPorMesEAnoAsync(int mes, int ano)
+    {
+        var professoresRelatorio = new List<ItemRelatorioProfessor>();
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            await connection.OpenAsync();
+
+            var query = @"
+                SELECT p.nome, COUNT(a.id) AS qtd_aulas
+                FROM professores p
+                LEFT JOIN aulas a ON a.idprofessor = p.id
+                    AND EXTRACT(MONTH FROM a.datahora) = @Mes
+                    AND EXTRACT(YEAR FROM a.datahora) = @Ano
+                GROUP BY p.nome
+                ORDER BY p.nome";
+
+            using (var cmd = new NpgsqlCommand(query, connection))
+            {
+                cmd.Parameters.AddWithValue("Mes", mes);
+                cmd.Parameters.AddWithValue("Ano", ano);
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        professoresRelatorio.Add(new ItemRelatorioProfessor
+                        {
+                            Nome = reader.GetString(0),
+                            Especialidade = "Não informado", // como não existe no banco
+                            QuantidadeAulas = reader.GetInt32(1)
+                        });
+                    }
+                }
+            }
+        }
+
+        return professoresRelatorio;
+    }
+
+
+public async Task<RelatorioProfessor> ObterRelatorioProfessoresPorMesEAnoAsync(int mes, int ano)
+    {
+        var itens = await ObterProfessoresPorMesEAnoAsync(mes, ano);
+
+        return new RelatorioProfessor
+        {
+            TituloColunaNome = "Nome",
+            TituloColunaEspecialidade = "Especialidade",
+            TituloColunaQtdAulas = "Quantidade de Aulas",
+            Itens = itens
+        };
+    }
+
 }
 
 public class Professor
@@ -207,4 +262,19 @@ public class ProfessorOptions
 {
     public int Id { get; set; }
     public string Nome { get; set; }
+}
+
+public class RelatorioProfessor
+{
+    public string TituloColunaNome { get; set; }
+    public string TituloColunaEspecialidade { get; set; }
+    public string TituloColunaQtdAulas { get; set; }
+    public List<ItemRelatorioProfessor> Itens { get; set; }
+}
+
+public class ItemRelatorioProfessor
+{
+    public string Nome { get; set; }
+    public string Especialidade { get; set; }
+    public int QuantidadeAulas { get; set; }
 }

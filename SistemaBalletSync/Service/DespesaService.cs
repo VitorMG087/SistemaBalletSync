@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using Dapper;
+using Npgsql;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
@@ -121,6 +122,41 @@ public class DespesaService
 
         return despesas;
     }
+    public async Task<RelatorioDespesa> ObterRelatorioDespesasPorMes(int mes, int ano)
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var query = @"
+        SELECT descricao, valor, data
+        FROM despesas
+        WHERE EXTRACT(MONTH FROM data) = @Mes 
+          AND EXTRACT(YEAR FROM data) = @Ano
+        ORDER BY data";
+
+        var dados = await connection.QueryAsync(query, new { Mes = mes, Ano = ano });
+
+        var relatorio = new RelatorioDespesa
+        {
+            Titulo = $"Despesas do mês {mes:00}/{ano}",
+            Coluna1 = "Descrição",
+            Coluna2 = "Valor",
+            Coluna3 = "Data",
+            Dados = new List<RelatorioItemDespesa>()
+        };
+
+        foreach (var item in dados)
+        {
+            relatorio.Dados.Add(new RelatorioItemDespesa
+            {
+                Coluna1 = item.descricao,
+                Coluna2 = Convert.ToDecimal(item.valor).ToString("C"),
+                Coluna3 = Convert.ToDateTime(item.data).ToString("dd/MM/yyyy")
+            });
+        }
+
+        return relatorio;
+    }
 
     public async Task DeleteDespesaAsync(int id)
     {
@@ -138,12 +174,27 @@ public class DespesaService
 public class Despesa
 {
     public int Id { get; set; }
-    
+
     public string Descricao { get; set; } = string.Empty;
-    
+
     public decimal Valor { get; set; }
-    
+
     public DateTime Data { get; set; }
-    
+
     public string? Categoria { get; set; }
+}
+public class RelatorioDespesa
+{
+    public string Titulo { get; set; }
+    public string Coluna1 { get; set; }
+    public string Coluna2 { get; set; }
+    public string Coluna3 { get; set; }
+    public List<RelatorioItemDespesa> Dados { get; set; }
+}
+
+public class RelatorioItemDespesa
+{
+    public string Coluna1 { get; set; }
+    public string Coluna2 { get; set; }
+    public string Coluna3 { get; set; }
 }

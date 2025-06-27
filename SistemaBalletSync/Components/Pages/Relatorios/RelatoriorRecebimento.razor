@@ -1,0 +1,79 @@
+﻿@page "/relatorios/recebimentos"
+@inject RecebimentoService RecebimentoService
+
+<h3>Relatório de Recebimentos</h3>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <label>Mês</label>
+        <select class="form-control" @bind="mes" @bind:event="onchange">
+            @for (int i = 1; i <= 12; i++)
+            {
+                <option value="@i">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label>Ano</label>
+        <InputNumber class="form-control" @bind-Value="ano" @bind-Value:event="oninput" />
+    </div>
+</div>
+
+<div>
+    <button class="btn btn-primary me-2" @onclick="GerarRelatorio">Gerar Relatório</button>
+
+    @if (relatorio != null)
+    {
+        <a class="btn btn-success" href="@($"/relatorio/gerar-pdf-recebimentos?mes={mes}&ano={ano}")" target="_blank">
+            Gerar PDF
+        </a>
+    }
+    else
+    {
+        <button class="btn btn-success" disabled>Gerar PDF</button>
+    }
+</div>
+
+@if (relatorio != null)
+{
+    <div class="mt-4">
+        <h5>@relatorio.Titulo</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>@relatorio.Coluna1</th>
+                    <th>@relatorio.Coluna2</th>
+                    <th>@relatorio.Coluna3</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in relatorio.Dados)
+                {
+                    <tr>
+                        <td>@item.Coluna1</td>
+                        <td>@item.Coluna2</td>
+                        <td>@item.Coluna3</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="mt-4">Selecione mês e ano, e clique em "Gerar Relatório".</p>
+}
+
+@code {
+    private int mes = DateTime.Now.Month;
+    private int ano = DateTime.Now.Year;
+
+    private RelatorioRecebimento relatorio;
+
+    private async Task GerarRelatorio()
+    {
+        relatorio = await RecebimentoService.ObterRelatorioRecebimentosPorMes(mes, ano);
+    }
+}
+
+

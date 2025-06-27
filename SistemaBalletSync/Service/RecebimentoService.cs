@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
+
 public class RecebimentoService
 {
     private readonly string _connectionString;
@@ -296,7 +297,44 @@ public class RecebimentoService
         var result = await connection.QueryAsync<Recebimento>(query, new { Mes = mes, Ano = ano });
         return result.AsList();
     }
+    public async Task<RelatorioRecebimento> ObterRelatorioRecebimentosPorMes(int mes, int ano)
+    {
+        using var connection = new NpgsqlConnection(_connectionString);
+
+        var query = @"
+        SELECT descricao, valor, data 
+        FROM recebimentos 
+        WHERE EXTRACT(MONTH FROM data) = @Mes 
+          AND EXTRACT(YEAR FROM data) = @Ano
+        ORDER BY data";
+
+        var dados = await connection.QueryAsync(query, new { Mes = mes, Ano = ano });
+
+        var relatorio = new RelatorioRecebimento
+        {
+            Titulo = $"Recebimentos do mês {mes:00}/{ano}",
+            Coluna1 = "Descrição",
+            Coluna2 = "Valor",
+            Coluna3 = "Data",
+            Dados = new List<RelatorioItemRecebimento>()
+        };
+
+        foreach (var item in dados)
+        {
+            relatorio.Dados.Add(new RelatorioItemRecebimento
+            {
+                Coluna1 = item.descricao,
+                Coluna2 = Convert.ToDecimal(item.valor).ToString("C"),
+                Coluna3 = Convert.ToDateTime(item.data).ToString("dd/MM/yyyy")
+            });
+        }
+
+        return relatorio;
+    }
+
+
 }
+
 
 public class Mensalidade
 {
@@ -325,3 +363,20 @@ public class Recebimento
     [Required(ErrorMessage = "A categoria é obrigatória.")]
     public string Categoria { get; set; }
 }
+
+public class RelatorioRecebimento
+{
+    public string Titulo { get; set; }
+    public string Coluna1 { get; set; }
+    public string Coluna2 { get; set; }
+    public string Coluna3 { get; set; }
+    public List<RelatorioItemRecebimento> Dados { get; set; }
+}
+
+public class RelatorioItemRecebimento
+{
+    public string Coluna1 { get; set; }
+    public string Coluna2 { get; set; }
+    public string Coluna3 { get; set; }
+}
+

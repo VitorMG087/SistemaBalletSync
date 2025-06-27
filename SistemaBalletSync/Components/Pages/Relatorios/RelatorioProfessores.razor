@@ -1,0 +1,71 @@
+﻿@page "/relatorios/professores"
+@inject ProfessorService ProfessorService
+
+<h3>Relatório de Professores</h3>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <label>Mês</label>
+        <select class="form-control" @bind="mes" @bind:event="onchange">
+            @for (int i = 1; i <= 12; i++)
+            {
+                <option value="@i">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label>Ano</label>
+        <InputNumber class="form-control" @bind-Value="ano" @bind-Value:event="oninput" />
+    </div>
+</div>
+
+<div>
+    <button class="btn btn-primary me-2" @onclick="GerarRelatorio">Gerar Relatório</button>
+
+    <a class="btn btn-success"
+       href="@($"/relatorio/professor/gerar-pdf-professores?mes={mes}&ano={ano}")"
+       target="_blank"
+       rel="noopener noreferrer"
+       disabled="@(relatorio == null || relatorio.Itens == null || !relatorio.Itens.Any())"
+       style="pointer-events:@((relatorio == null || relatorio.Itens == null || !relatorio.Itens.Any()) ? "none" : "auto"); opacity:@((relatorio == null || relatorio.Itens == null || !relatorio.Itens.Any()) ? "0.5" : "1")">
+        Gerar PDF
+    </a>
+</div>
+
+@if (relatorio != null && relatorio.Itens != null && relatorio.Itens.Any())
+{
+    <div class="mt-4">
+        <h5>Professores do mês de @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mes) / @ano</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>@relatorio.TituloColunaNome</th>                
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in relatorio.Itens)
+                {
+                    <tr>
+                        <td>@item.Nome</td>                     
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="mt-4">Selecione mês e ano, e clique em "Gerar Relatório".</p>
+}
+
+@code {
+    private int mes = DateTime.Now.Month;
+    private int ano = DateTime.Now.Year;
+
+    private RelatorioProfessor relatorio;
+
+    private async Task GerarRelatorio()
+    {
+        relatorio = await ProfessorService.ObterRelatorioProfessoresPorMesEAnoAsync(mes, ano);
+    }
+}
