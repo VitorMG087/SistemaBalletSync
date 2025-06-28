@@ -1,6 +1,9 @@
-﻿<div class="top-row d-flex justify-content-center navbar navbar-dark">
+﻿@inject SessaoUsuario SessaoUsuario
+@inject NavigationManager Navigation
+
+<div class="top-row d-flex justify-content-center navbar navbar-dark">
     <div class="container-fluid d-flex justify-content-center">
-        <img src="../img/logo-ballet.png" height="55px" alt="Logo BalletSync">
+        <img src="../img/logo-ballet.png" height="55px" alt="Logo BalletSync" />
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -9,78 +12,83 @@
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="flex-column">
+
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <NavLink class="nav-link" href="inicio" Match="NavLinkMatch.All">
                 <i class="bi bi-house"></i> Início
             </NavLink>
         </div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="alunos">
                 <i class="bi bi-person"></i> Alunos
             </NavLink>
         </div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="professores">
                 <i class="bi bi-pen"></i> Professores
             </NavLink>
         </div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="aulas">
                 <i class="bi bi-book"></i> Aulas
             </NavLink>
         </div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="recebimentos">
                 <i class="bi bi-currency-dollar"></i> Recebimentos
             </NavLink>
         </div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="despesas">
                 <i class="bi bi-cash-coin"></i> Despesas
             </NavLink>
         </div>
+
         <div class="nav-item px-3">
-            <a class="nav-link" href="#" @onclick="ToggleRelatorios">
+            <a class="nav-link" @onclick="ToggleRelatorios" style="cursor:pointer;">
                 <i class="bi bi-flag"></i> Relatórios
             </a>
+
             @if (mostrarRelatorios)
             {
                 <ul class="nav flex-column ms-4">
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="relatorios/frequencia">
-                           Frequência
-                        </NavLink>
+                        <NavLink class="nav-link" href="relatorios/frequencia">Frequência</NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="relatorios/recebimentos">
-                            Recebimentos
-                        </NavLink>
+                        <NavLink class="nav-link" href="relatorios/recebimentos">Recebimentos</NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="relatorios/despesas">
-                             Despesas
-                        </NavLink>
+                        <NavLink class="nav-link" href="relatorios/despesas">Despesas</NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="relatorios/professores">
-                            Professores
-                        </NavLink>
+                        <NavLink class="nav-link" href="relatorios/professores">Professores</NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="relatorios/aulas">
-                            Aulas
-                        </NavLink>
+                        <NavLink class="nav-link" href="relatorios/aulas">Aulas</NavLink>
                     </li>
                 </ul>
             }
         </div>
+
+        <!-- Botão Sair igual aos outros, sem cor vermelha -->
+        <div class="nav-item px-3 mt-3">
+            <a class="nav-link" @onclick="Logout" style="cursor:pointer;">
+                <i class="bi bi-box-arrow-right"></i> Sair
+            </a>
+        </div>
+
     </nav>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
     private bool mostrarRelatorios = false;
-
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
@@ -93,4 +101,11 @@
     {
         mostrarRelatorios = !mostrarRelatorios;
     }
+
+    private void Logout()
+    {
+        SessaoUsuario.Deslogar();
+        Navigation.NavigateTo("/");
+    }
 }
+

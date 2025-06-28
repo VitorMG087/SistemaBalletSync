@@ -8,6 +8,7 @@ using QuestPDF.Infrastructure;
 using SistemaBalletSync.Components.Pages.Cadastro;
 
 
+
 public class AulaService
 {
 	private readonly string _connectionString;

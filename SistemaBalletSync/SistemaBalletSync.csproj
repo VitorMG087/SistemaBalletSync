@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="Components\Layout\EmptyLayout.razor" />
     <Content Remove="Components\Pages\Cadastro\EditarAulaAluno.razor" />
     <Content Remove="Service\DespesaService.razor" />
     <Content Remove="Service\PlanoService.razor" />

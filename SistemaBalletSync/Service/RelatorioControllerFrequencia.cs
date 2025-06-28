@@ -1,49 +1,52 @@
-﻿using DinkToPdf.Contracts;
-using DinkToPdf;
+﻿using DinkToPdf;
+using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 
-[Route("relatorio")]
-[ApiController]
-public class RelatorioDespesaController : ControllerBase
+namespace SistemaBalletSync.Controllers
 {
-    private readonly IConverter _converter;
-    private readonly DespesaService _despesaService;
-
-    public RelatorioDespesaController(IConverter converter, DespesaService despesaService)
+    [Route("relatorio/frequencia")]
+    [ApiController]
+    public class RelatorioFrequenciaController : ControllerBase
     {
-        _converter = converter;
-        _despesaService = despesaService;
-    }
+        private readonly IConverter _converter;
+        private readonly AlunoService _alunoService;
 
-    [HttpGet("gerar-pdf-despesas")]
-    public async Task<IActionResult> GerarPdfDespesas(int mes, int ano)
-    {
-        var relatorio = await _despesaService.ObterRelatorioDespesasPorMes(mes, ano);
-
-        var tituloColuna1 = string.IsNullOrWhiteSpace(relatorio.Coluna1) ? "Descrição" : relatorio.Coluna1;
-        var tituloColuna2 = string.IsNullOrWhiteSpace(relatorio.Coluna2) ? "Valor" : relatorio.Coluna2;
-        var tituloColuna3 = string.IsNullOrWhiteSpace(relatorio.Coluna3) ? "Data" : relatorio.Coluna3;
-
-        string linhasTabela = "";
-        foreach (var item in relatorio.Dados)
+        public RelatorioFrequenciaController(IConverter converter, AlunoService alunoService)
         {
-            linhasTabela += $"<tr>" +
-                            $"<td>{item.Coluna1}</td>" +
-                            $"<td>{item.Coluna2}</td>" +
-                            $"<td>{item.Coluna3}</td>" +
-                            $"</tr>";
+            _converter = converter;
+            _alunoService = alunoService;
         }
 
-        string logoBase64 = "file:///" + Path.GetFullPath("wwwroot/img/icone.jpg").Replace("\\", "/");
+        [HttpGet("gerar-pdf")]
+        public async Task<IActionResult> GerarPdfFrequencia(int mes, int ano)
+        {
+            var tituloColunaNome = "Nome";
+            var relatorio = await _alunoService.ObterRelatorioFrequenciaPorMes(mes, ano);
 
-        string htmlContent = @$"<!DOCTYPE html>
+            var tituloColuna1 = string.IsNullOrWhiteSpace(relatorio.Coluna1) ? "Aluno" : relatorio.Coluna1;
+            var tituloColuna2 = string.IsNullOrWhiteSpace(relatorio.Coluna2) ? "Presenças" : relatorio.Coluna2;
+            var tituloColuna3 = string.IsNullOrWhiteSpace(relatorio.Coluna3) ? "Total de Aulas" : relatorio.Coluna3;
+
+            string linhasTabela = "";
+            foreach (var item in relatorio.Dados)
+            {
+                linhasTabela += $"<tr>" +
+                                $"<td>{item.Coluna1}</td>" +
+                                $"<td>{item.Coluna2}</td>" +
+                                $"<td>{item.Coluna3}</td>" +
+                                $"</tr>";
+            }
+
+            string logoBase64 = "file:///" + Path.GetFullPath("wwwroot/img/icone.jpg").Replace("\\", "/");
+
+            string htmlContent = @$"<!DOCTYPE html>
 <html lang='pt-BR'>
 <head>
   <meta charset='UTF-8' />
-  <title>Relatório de Despesas - Escola de Ballet</title>
+  <title>Relatório de Frequência - Escola de Ballet</title>
   <style>
     :root {{
       --primary-color: #d88da7;
@@ -130,7 +133,7 @@ public class RelatorioDespesaController : ControllerBase
       <img src='{logoBase64}' class='logo' />
     </header>
 
-    <h1 class='titulo-relatorio'>Relatório de Despesas - {mes:00}/{ano}</h1>
+    <h1 class='titulo-relatorio'>Relatório de Frequência - {mes:00}/{ano}</h1>
 
     <div class='filtros'>
       <p><strong>Filtros:</strong></p>
@@ -146,6 +149,11 @@ public class RelatorioDespesaController : ControllerBase
           <th>{tituloColuna3}</th>
         </tr>
       </thead>
+ <thead>
+            <tr>
+                <th>{tituloColunaNome}</th>
+            </tr>
+        </thead>
       <tbody>
         {linhasTabela}
       </tbody>
@@ -158,23 +166,24 @@ public class RelatorioDespesaController : ControllerBase
 </body>
 </html>";
 
-        var doc = new HtmlToPdfDocument
-        {
-            GlobalSettings = new GlobalSettings
+            var doc = new HtmlToPdfDocument
             {
-                PaperSize = PaperKind.A4,
-                Orientation = Orientation.Portrait,
-            },
-            Objects = {
-                new ObjectSettings
+                GlobalSettings = new GlobalSettings
                 {
-                    HtmlContent = htmlContent,
-                    WebSettings = { DefaultEncoding = "utf-8" }
+                    PaperSize = PaperKind.A4,
+                    Orientation = Orientation.Portrait,
+                },
+                Objects = {
+                    new ObjectSettings
+                    {
+                        HtmlContent = htmlContent,
+                        WebSettings = { DefaultEncoding = "utf-8" }
+                    }
                 }
-            }
-        };
+            };
 
-        var pdf = _converter.Convert(doc);
-        return File(pdf, "application/pdf", $"Relatorio_Despesas_{mes}_{ano}.pdf");
+            var pdf = _converter.Convert(doc);
+            return File(pdf, "application/pdf", $"Relatorio_Frequencia_{mes}_{ano}.pdf");
+        }
     }
 }

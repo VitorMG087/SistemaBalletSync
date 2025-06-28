@@ -24,9 +24,10 @@
 
     @if (relatorio != null)
     {
-        <a class="btn btn-success" href="@($"/relatorio/gerar-pdf-despesas?mes={mes}&ano={ano}")" target="_blank">
+        <a class="btn btn-success" href="@($"/relatorio/despesas/gerar-pdf?mes={mes}&ano={ano}")" target="_blank">
             Gerar PDF
         </a>
+
     }
     else
     {

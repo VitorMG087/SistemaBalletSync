@@ -1,7 +1,7 @@
 ﻿using SistemaBalletSync.Components;
-
 using DinkToPdf;
 using DinkToPdf.Contracts;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 var context = new CustomAssemblyLoadContext();
@@ -13,15 +13,11 @@ string connectionString = builder.Configuration.GetConnectionString("DefaultConn
 
 // Serviços do sistema
 builder.Services.AddSingleton(new RecebimentoService(connectionString));
-
-// ⚠️ DinkToPdf - Configuração correta do conversor PDF
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
-
-
-builder.Services.AddScoped<PdfService>();
 
 builder.Services.AddScoped<PdfService>();
 builder.Services.AddScoped<PlanoService>();
+
 
 builder.Services.AddScoped<ProfessorService>(_ =>
     new ProfessorService(connectionString));
@@ -38,9 +34,14 @@ builder.Services.AddScoped<AlunoService>(_ =>
 builder.Services.AddScoped<DespesaService>(_ =>
     new DespesaService(connectionString));
 
+// ✅ Registro do UsuarioService
+builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<SessaoUsuario>();
+
+
+
 // Configuração do HttpClient
 builder.Services.AddHttpClient();
-
 builder.Services.AddHttpClient("MyClient", client =>
 {
     client.BaseAddress = new Uri("https://localhost:7051/");
@@ -56,7 +57,6 @@ builder.Services.AddScoped(sp =>
 
 // MVC + Blazor Server
 builder.Services.AddControllers();
-
 builder.Services.AddRazorComponents()
        .AddInteractiveServerComponents();
 

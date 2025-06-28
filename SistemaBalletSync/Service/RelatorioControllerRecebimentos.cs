@@ -25,6 +25,7 @@ public class RelatorioRecebimentoController : ControllerBase
     [HttpGet("gerar-pdf-recebimentos")]
     public async Task<IActionResult> GerarPdfRecebimentos(int mes, int ano)
     {
+        var tituloColunaNome = "Nome";
         var relatorio = await _recebimentoService.ObterRelatorioRecebimentosPorMes(mes, ano);
 
         var tituloColuna1 = string.IsNullOrEmpty(relatorio.Coluna1) ? "Aluno" : relatorio.Coluna1;
@@ -146,7 +147,12 @@ public class RelatorioRecebimentoController : ControllerBase
       <th>{relatorio.Coluna1 ?? "Descriçao"}</th>
       <th>{relatorio.Coluna2 ?? "Valor"}</th>
       <th>{relatorio.Coluna3 ?? "Data"}</th>
-
+ <table>
+        <thead>
+            <tr>
+                <th>{tituloColunaNome}</th>
+            </tr>
+        </thead>
       <tbody>
         {linhasTabela}
       </tbody>
