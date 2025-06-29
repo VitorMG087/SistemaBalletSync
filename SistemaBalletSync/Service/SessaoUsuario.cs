@@ -1,17 +1,17 @@
-﻿public class SessaoUsuario
+﻿namespace SistemaBalletSync.Services
 {
-    public Usuario? UsuarioLogado { get; private set; }
-
-    public bool EstaLogado => UsuarioLogado != null;
-
-    public void Logar(Usuario usuario)
+    public class SessaoUsuario
     {
-        UsuarioLogado = usuario;
-    }
+        public Usuario? Usuario { get; private set; }
 
-    public void Deslogar()
-    {
-        UsuarioLogado = null;
-    }
+        public void Logar(Usuario usuario)
+        {
+            Usuario = usuario;
+        }
 
+        public void Deslogar()
+        {
+            Usuario = null;
+        }
+    }
 }

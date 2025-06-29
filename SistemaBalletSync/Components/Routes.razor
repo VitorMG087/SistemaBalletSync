@@ -1,14 +1,8 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
-</Router>
-@using Microsoft.AspNetCore.Components.Routing
+﻿@using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
+<Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="true">
     <Found Context="routeData">
         @if (carregando)
         {
@@ -39,30 +33,26 @@
     {
         if (firstRender)
         {
-            // Pega token do localStorage via JS
             temToken = !string.IsNullOrEmpty(await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken"));
             carregando = false;
 
             StateHasChanged();
 
-            // Se não tem token e não está na página login, redireciona para login
             var uri = new Uri(Navigation.Uri);
             var relativePath = uri.AbsolutePath.Trim('/').ToLower();
 
             if (!temToken && relativePath != "")
             {
-                Navigation.NavigateTo("/", true);
+                Navigation.NavigateTo("/login", true);
             }
         }
     }
 
     private bool IsLoginPage(RouteData routeData)
     {
-        // Verifica se o nome completo da página termina com Login (ex: Components.Pages.Login)
         return routeData.PageType.FullName.EndsWith("Login");
     }
 
-    // Componente simples para redirecionar para login (pode usar Navigation.NavigateTo diretamente também)
     public partial class RedirectToLogin : ComponentBase
     {
         [Inject] NavigationManager Nav { get; set; } = default!;

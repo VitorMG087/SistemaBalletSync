@@ -4,6 +4,9 @@
 @inject UsuarioService UsuarioService
 @inject SessaoUsuario SessaoUsuario
 @inject IJSRuntime JS
+@inject LogService LogService
+@using SistemaBalletSync.Services
+
 
 <PageTitle>Login - BalletSync</PageTitle>
 
@@ -52,26 +55,23 @@
 
             if (usuarioValido != null)
             {
-                // Gera o token
                 var token = UsuarioService.GerarToken(usuarioValido);
-
-                // Armazena na sessão
                 await JS.InvokeVoidAsync("sessionStorage.setItem", "authToken", token);
-
-                // Seta usuário na sessão
                 SessaoUsuario.Logar(usuarioValido);
 
-                // Redireciona
+                await LogService.RegistrarLogAsync(usuarioValido.Nome, "Login", "Usuário autenticado com sucesso.");
                 Navigation.NavigateTo("/inicio", forceLoad: true);
             }
             else
             {
                 mensagemErro = "Nome de usuário ou senha inválidos.";
+                await LogService.RegistrarLogAsync(usuario.Nome, "LoginFalha", "Credenciais inválidas.");
             }
         }
         catch (Exception ex)
         {
             mensagemErro = "Erro ao tentar autenticar: " + ex.Message;
+            await LogService.RegistrarLogAsync(usuario.Nome, "LoginErro", ex.Message);
         }
     }
 }

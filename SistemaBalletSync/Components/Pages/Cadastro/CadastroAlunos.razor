@@ -4,7 +4,9 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 @inject PlanoService PlanoService
-
+@inject LogService LogService
+@inject SessaoUsuario SessaoUsuario
+@using SistemaBalletSync.Services
 
 <PageTitle>Alunos - BalletSync</PageTitle>
 
@@ -20,7 +22,7 @@
                 <EditForm Model="AlunoModel" OnValidSubmit="HandleValidSubmit">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
-           
+
                     <div class="row">
                         <div class="col-xxl-3 col-md-6">
                             <label class="form-label">Nome Completo<span class="text-danger">*</span></label>
@@ -93,8 +95,8 @@
                             </InputRadioGroup>
                         </div>
 
-                    </div>                                                            
-                      
+                    </div>
+
                     <div class="row mt-3">
                         <div class="d-flex justify-content-between">
                             <button class="btn btn-secondary" type="button" @onclick="Voltar">Voltar</button>
@@ -131,19 +133,28 @@
                 Navigation.NavigateTo("/alunos");
             }
         }
-
     }
 
     private async Task HandleValidSubmit()
-
     {
-
         try
         {
+            var usuarioLogado = SessaoUsuario.Usuario?.Nome ?? "O usuario Logado";
+
             if (string.IsNullOrEmpty(idAluno))
+            {
                 await AlunoService.AddAlunoAsync(AlunoModel);
+
+                // Log criação
+                await LogService.RegistrarLogAsync(usuarioLogado, "Cadastro de Aluno", $"Aluno {AlunoModel.Nome} cadastrado.");
+            }
             else
+            {
                 await AlunoService.UpdateAlunoAsync(AlunoModel, idAluno);
+
+                // Log edição
+                await LogService.RegistrarLogAsync(usuarioLogado, "Edição de Aluno", $"Aluno {AlunoModel.Nome} atualizado.");
+            }
 
             Navigation.NavigateTo("/alunos");
         }
@@ -151,19 +162,7 @@
         {
             await JSRuntime.InvokeVoidAsync("alert", $"Ocorreu um erro ao salvar o aluno: {ex.Message}");
         }
-
-        if (string.IsNullOrEmpty(idAluno))
-            await AlunoService.AddAlunoAsync(AlunoModel);
-        else
-            await AlunoService.UpdateAlunoAsync(AlunoModel, idAluno);
-
-        Navigation.NavigateTo("/alunos");
     }
 
-   
-
     private void Voltar() => Navigation.NavigateTo("/alunos");
-
-    
-    
 }

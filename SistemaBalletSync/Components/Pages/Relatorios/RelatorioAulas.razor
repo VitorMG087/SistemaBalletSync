@@ -1,5 +1,7 @@
 ﻿@page "/relatorios/aulas"
 @inject AulaService AulaService
+@inject LogService LogService
+@using SistemaBalletSync.Services
 
 <h3>Relatório de Aulas</h3>
 
@@ -18,6 +20,7 @@
         <InputNumber class="form-control" @bind-Value="ano" @bind-Value:event="oninput" />
     </div>
 </div>
+
 <div>
     <button class="btn btn-primary me-2" @onclick="GerarRelatorio">Gerar Relatório</button>
 
@@ -30,7 +33,6 @@
         Gerar PDF
     </a>
 </div>
-
 
 @if (aulas != null && aulas.Any())
 {
@@ -67,11 +69,20 @@ else
 @code {
     private int mes = DateTime.Now.Month;
     private int ano = DateTime.Now.Year;
-
     private List<Aula> aulas;
 
     private async Task GerarRelatorio()
     {
-        aulas = await AulaService.GetAulasPorMesEAnoAsync(mes, ano);
+        try
+        {
+            aulas = await AulaService.GetAulasPorMesEAnoAsync(mes, ano);
+
+            var descricaoLog = $"Relatório de Aulas exibido na tela - {mes:D2}/{ano}";
+            await LogService.RegistrarLogAsync("O Usuario Logado", descricaoLog, "Sistema");
+        }
+        catch (Exception ex)
+        {
+            await LogService.RegistrarLogAsync("O Usuario Logado", $"Erro ao gerar relatório {mes:D2}/{ano}: {ex.Message}", "Sistema");
+        }
     }
 }

@@ -1,5 +1,7 @@
 ﻿@page "/relatorios/recebimentos"
 @inject RecebimentoService RecebimentoService
+@inject LogService LogService
+@using SistemaBalletSync.Services
 
 <h3>Relatório de Recebimentos</h3>
 
@@ -72,8 +74,17 @@ else
 
     private async Task GerarRelatorio()
     {
-        relatorio = await RecebimentoService.ObterRelatorioRecebimentosPorMes(mes, ano);
+        try
+        {
+            relatorio = await RecebimentoService.ObterRelatorioRecebimentosPorMes(mes, ano);
+
+            var descricaoLog = $"Relatório de Recebimentos exibido na tela - {mes:D2}/{ano}";
+            await LogService.RegistrarLogAsync("O Usuario Logado", descricaoLog, "Sistema");
+        }
+        catch (Exception ex)
+        {
+            var erroLog = $"Erro ao gerar relatório de recebimentos {mes:D2}/{ano}: {ex.Message}";
+            await LogService.RegistrarLogAsync("O Usuario Logado", erroLog, "Sistema");
+        }
     }
 }
-
-

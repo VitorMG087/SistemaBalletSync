@@ -2,141 +2,140 @@
 @page "/professores/editar/{idProfessor}"
 @inject ProfessorService ProfessorService
 @inject NavigationManager Navigation
+@inject LogService LogService
+@inject SessaoUsuario SessaoUsuario
+@using SistemaBalletSync.Services
 
-<PageTitle>professores - BalletSync</PageTitle>
+<PageTitle>Professores - BalletSync</PageTitle>
 
 <div class="row">
-	<div class="col-lg-12">
-		<div class="card">
-			<div class="card-header align-items-center d-flex">
-				<h4 class="card-title mb-0 flex-grow-1">@(string.IsNullOrEmpty(idProfessor) ? "Cadastrar" : "Editar") Professor</h4>
-			</div>
-			<div class="card-body">
-				<EditForm Model="ProfessorModel" OnValidSubmit="HandleValidSubmit">
-					<DataAnnotationsValidator />
-					<ValidationSummary />
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">@(string.IsNullOrEmpty(idProfessor) ? "Cadastrar" : "Editar") Professor</h4>
+            </div>
+            <div class="card-body">
+                <EditForm Model="ProfessorModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
 
-					<div class="row">
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="nomecompleto" class="form-label">Nome Completo<span class="text-danger">*</span></label>
-								<InputText id="nomecompleto" class="form-control" @bind-Value="ProfessorModel.Nome" autocomplete="no" spellcheck="false" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="cpf" class="form-label">CPF<span class="text-danger">*</span></label>
-								<InputText id="cpf" class="form-control" @bind-Value="ProfessorModel.CPF" autocomplete="no" />
-								<ValidationMessage For="@(() => ProfessorModel.CPF)" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="telefoneparacontato" class="form-label">Telefone para Contato<span class="text-danger">*</span></label>
-								<InputText id="telefoneparacontato" class="form-control" @bind-Value="ProfessorModel.Telefone" autocomplete="no" />
-								<ValidationMessage For="@(() => ProfessorModel.Telefone)" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="cep" class="form-label">CEP<span class="text-danger">*</span></label>
-								<InputText id="cep" class="form-control" @bind-Value="ProfessorModel.Cep" autocomplete="no" />
-								<ValidationMessage For="@(() => ProfessorModel.Cep)" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="estado" class="form-label">Estado<span class="text-danger">*</span></label>
-								<input id="estado" class="form-control" @bind="ProfessorModel.Estado" autocomplete="no" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="cidade" class="form-label">Cidade<span class="text-danger">*</span></label>
-								<input id="cidade" class="form-control" @bind="ProfessorModel.Cidade" autocomplete="no" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="bairro" class="form-label">Bairro</label>
-								<input id="bairro" class="form-control" @bind="ProfessorModel.Bairro" autocomplete="no" />
+                    <div class="row">
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Nome Completo<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="ProfessorModel.Nome" />
+                            <small class="text-danger">@((exibeMensagemObrigatorio && string.IsNullOrEmpty(ProfessorModel.Nome)) ? "Campo Obrigatório" : "")</small>
+                        </div>
 
-							</div>
-						</div>
-						<div class="col-xxl-6 col-md-6">
-							<div>
-								<label for="endereco" class="form-label">Endereco<span class="text-danger">*</span></label>
-								<input id="endereco" class="form-control" @bind="ProfessorModel.Endereco" autocomplete="no" />
-								<small class="text-danger" id="text-danger">@(exibeMensagemObrigatorio ? "Campo Obrigatório" : "")</small>
-							</div>
-						</div>
-						<div class="col-xxl-3 col-md-6">
-							<div>
-								<label for="complemento" class="form-label">Complemento</label>
-								<input id="bairro" class="form-control" @bind="ProfessorModel.Complemento" autocomplete="no" />
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">CPF<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="ProfessorModel.CPF" />
+                            <small class="text-danger">@((exibeMensagemObrigatorio && string.IsNullOrEmpty(ProfessorModel.CPF)) ? "Campo Obrigatório" : "")</small>
+                        </div>
 
-							</div>
-						</div>
-					</div>
-					<div class="row mt-3">
-						<div class="d-flex justify-content-between">
-							<button class="btn btn-secondary" type="button" @onclick="Voltar">Voltar</button>
-							<button class="btn btn-primary" type="submit">Salvar</button>
-						</div>
-					</div>
-				</EditForm>
-			</div>
-		</div>
-	</div>
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Telefone para Contato<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="ProfessorModel.Telefone" />
+                            <small class="text-danger">@((exibeMensagemObrigatorio && string.IsNullOrEmpty(ProfessorModel.Telefone)) ? "Campo Obrigatório" : "")</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">CEP<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="ProfessorModel.Cep" />
+                            <small class="text-danger">@((exibeMensagemObrigatorio && string.IsNullOrEmpty(ProfessorModel.Cep)) ? "Campo Obrigatório" : "")</small>
+                        </div>
+
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Estado<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="ProfessorModel.Estado" />
+                            <small class="text-danger">@((exibeMensagemObrigatorio && string.IsNullOrEmpty(ProfessorModel.Estado)) ? "Campo Obrigatório" : "")</small>
+                        </div>
+
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Cidade<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="ProfessorModel.Cidade" />
+                            <small class="text-danger">@((exibeMensagemObrigatorio && string.IsNullOrEmpty(ProfessorModel.Cidade)) ? "Campo Obrigatório" : "")</small>
+                        </div>
+
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Bairro</label>
+                            <InputText class="form-control" @bind-Value="ProfessorModel.Bairro" />
+                        </div>
+
+                        <div class="col-xxl-6 col-md-6">
+                            <label class="form-label">Endereço<span class="text-danger">*</span></label>
+                            <InputText class="form-control" @bind-Value="ProfessorModel.Endereco" />
+                            <small class="text-danger">@((exibeMensagemObrigatorio && string.IsNullOrEmpty(ProfessorModel.Endereco)) ? "Campo Obrigatório" : "")</small>
+                        </div>
+
+                        <div class="col-xxl-3 col-md-6">
+                            <label class="form-label">Complemento</label>
+                            <InputText class="form-control" @bind-Value="ProfessorModel.Complemento" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-secondary" type="button" @onclick="Voltar">Voltar</button>
+                            <button class="btn btn-primary" type="submit">Salvar</button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
-	private Professor ProfessorModel = new Professor();
+    private Professor ProfessorModel = new();
+    [Parameter] public string idProfessor { get; set; } = string.Empty;
+    private bool exibeMensagemObrigatorio;
 
-	[Parameter] public string idProfessor { get; set; } = string.Empty;
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(idProfessor))
+        {
+            ProfessorModel = await ProfessorService.GetProfessorByIdAsync(idProfessor);
+        }
+    }
 
-	private bool exibeMensagemObrigatorio;
+    private async Task HandleValidSubmit()
+    {
+        if (string.IsNullOrEmpty(ProfessorModel.Nome) || string.IsNullOrEmpty(ProfessorModel.Telefone) ||
+            string.IsNullOrEmpty(ProfessorModel.CPF) || string.IsNullOrEmpty(ProfessorModel.Endereco) ||
+            string.IsNullOrEmpty(ProfessorModel.Estado) || string.IsNullOrEmpty(ProfessorModel.Cidade))
+        {
+            exibeMensagemObrigatorio = true;
+            return;
+        }
 
-	protected override async Task OnInitializedAsync()
-	{
-		if (!string.IsNullOrEmpty(idProfessor))
-		{
-			ProfessorModel = await ProfessorService.GetProfessorByIdAsync(idProfessor);
-		}
-	}
+        string acao;
+        string detalhe;
 
-	private async Task HandleValidSubmit()
-	{
-		if (string.IsNullOrEmpty(ProfessorModel.Nome) | string.IsNullOrEmpty(ProfessorModel.Telefone) | string.IsNullOrEmpty(ProfessorModel.CPF) | string.IsNullOrEmpty(ProfessorModel.Endereco) | string.IsNullOrEmpty(ProfessorModel.Estado) | string.IsNullOrEmpty(ProfessorModel.Cidade))
-		{
-			exibeMensagemObrigatorio = true;
-			return;
-		}
+        if (string.IsNullOrEmpty(idProfessor))
+        {
+            await ProfessorService.AddProfessorAsync(ProfessorModel);
+            acao = "Cadastro de Professor";
+            detalhe = $"Professor cadastrado: {ProfessorModel.Nome}";
+        }
+        else
+        {
+            await ProfessorService.UpdateProfessorAsync(ProfessorModel, idProfessor);
+            acao = "Edição de Professor";
+            detalhe = $"Professor editado: {ProfessorModel.Nome} (ID: {idProfessor})";
+        }
 
-		if (string.IsNullOrEmpty(idProfessor))
-		{
-			await ProfessorService.AddProfessorAsync(ProfessorModel);
+        // Registrar log
+        var usuario = SessaoUsuario.Usuario?.Nome ?? "O Usuario Logado";
+        await LogService.RegistrarLogAsync(usuario, acao, detalhe);
 
-		}
-		else
-		{
-			await ProfessorService.UpdateProfessorAsync(ProfessorModel, idProfessor);
-		}
+        ProfessorModel = new Professor();
+        Navigation.NavigateTo("/professores");
+    }
 
-		ProfessorModel = new Professor();
-		Navigation.NavigateTo("/professores");
-	}
-
-	private void Voltar()
-	{
-		Navigation.NavigateTo("/professores", true);
-	}
+    private void Voltar()
+    {
+        Navigation.NavigateTo("/professores", true);
+    }
 }

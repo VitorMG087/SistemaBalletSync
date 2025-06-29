@@ -4,6 +4,8 @@
 @inject ProfessorService ProfessorService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
+@inject SistemaBalletSync.Services.LogService LogService
+@inject SistemaBalletSync.Services.SessaoUsuario SessaoUsuario
 
 <PageTitle>Aulas - BalletSync</PageTitle>
 
@@ -150,7 +152,6 @@
 
 	private bool FormularioValido()
 	{
-		
 		return !string.IsNullOrWhiteSpace(AulaModel.Local)
 			&& DataAula.HasValue && DataAula.Value != default
 			&& AulaModel.IdProfessor > 0;
@@ -168,20 +169,33 @@
 
 			AulaModel.DataHora = DataAula.Value;
 
+			var usuarioLogado = SessaoUsuario.Usuario?.Nome ?? "";
+			string acao = "";
+			string detalhe = $"Aula: Local='{AulaModel.Local}', DataHora='{AulaModel.DataHora}', IdProfessor={AulaModel.IdProfessor}";
+
 			if (idAula == 0)
 			{
 				await AulaService.AddAulaAsync(AulaModel);
+				acao = "Adicionar Aula";
 			}
 			else
 			{
 				await AulaService.UpdateAulaAsync(AulaModel, idAula);
+				acao = "Editar Aula";
 			}
+
+			// Registrar log
+			await LogService.RegistrarLogAsync(usuarioLogado, acao, detalhe);
 
 			await JSRuntime.InvokeVoidAsync("alert", "Aula gravada com sucesso!");
 			Navigation.NavigateTo("/aulas");
 		}
 		catch (Exception ex)
 		{
+			// Registra erro no log (opcional)
+			var usuarioLogado = SessaoUsuario.Usuario?.Nome ?? "O usuario Logado";
+			await LogService.RegistrarLogAsync(usuarioLogado, "Erro ao salvar Aula", ex.Message);
+
 			await JSRuntime.InvokeVoidAsync("alert", $"Erro ao salvar aula: {ex.Message}");
 		}
 	}
@@ -191,3 +205,98 @@
 		Navigation.NavigateTo("/aulas");
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

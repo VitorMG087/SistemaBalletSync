@@ -23,7 +23,6 @@ namespace SistemaBalletSync.Controllers
         [HttpGet("gerar-pdf")]
         public async Task<IActionResult> GerarPdfDespesas(int mes, int ano)
         {
-            var tituloColunaNome = "Nome";
             var relatorio = await _despesaService.ObterRelatorioDespesasPorMes(mes, ano);
 
             var tituloColuna1 = string.IsNullOrWhiteSpace(relatorio.Coluna1) ? "Descrição" : relatorio.Coluna1;
@@ -149,11 +148,9 @@ namespace SistemaBalletSync.Controllers
           <th>{tituloColuna3}</th>
         </tr>
       </thead>
-     <thead>
-            <tr>
-                <th>{tituloColunaNome}</th>
-            </tr>
-        </thead>
+      <tbody>
+        {linhasTabela}
+      </tbody>
     </table>
 
     <footer>
@@ -171,16 +168,17 @@ namespace SistemaBalletSync.Controllers
                     Orientation = Orientation.Portrait,
                 },
                 Objects = {
-                    new ObjectSettings
-                    {
-                        HtmlContent = htmlContent,
-                        WebSettings = { DefaultEncoding = "utf-8" }
-                    }
-                }
+            new ObjectSettings
+            {
+                HtmlContent = htmlContent,
+                WebSettings = { DefaultEncoding = "utf-8" }
+            }
+        }
             };
 
             var pdf = _converter.Convert(doc);
             return File(pdf, "application/pdf", $"Relatorio_Despesas_{mes}_{ano}.pdf");
         }
+
     }
 }

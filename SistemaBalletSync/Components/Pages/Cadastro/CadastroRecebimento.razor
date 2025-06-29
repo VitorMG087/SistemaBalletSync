@@ -1,6 +1,9 @@
 ﻿@page "/recebimentos"
 @inject RecebimentoService RecebimentoService
 @inject NavigationManager Navigation
+@inject LogService LogService
+@inject SessaoUsuario SessaoUsuario
+@using SistemaBalletSync.Services
 
 <PageTitle>Recebimentos e Mensalidades</PageTitle>
 
@@ -138,6 +141,10 @@
     private async Task ConsultarMensalidades()
     {
         await CarregarMensalidades();
+
+        // Registrar log da consulta de mensalidades
+        var usuario = SessaoUsuario.Usuario?.Nome ?? "O Usuario Logado";
+        await LogService.RegistrarLogAsync(usuario, "Consulta Mensalidades", $"Consulta mensalidades para {filtros.Mes}/{filtros.Ano}");
     }
 
     private async Task DarBaixaMensalidade(int id)
@@ -145,12 +152,16 @@
         try
         {
             await RecebimentoService.DarBaixaMensalidadeAsync(id);
+
+            // Registrar log da baixa
+            var usuario = SessaoUsuario.Usuario?.Nome ?? "O Usuario Logado";
+            await LogService.RegistrarLogAsync(usuario, "Dar Baixa Mensalidade", $"Baixa da mensalidade Id: {id}");
+
             await CarregarRecebimentos();
             await CarregarMensalidades();
         }
         catch (Exception ex)
         {
-            // Tratar erro (exibir mensagem, logar, etc)
             Console.WriteLine($"Erro ao dar baixa: {ex.Message}");
         }
     }
@@ -161,6 +172,11 @@
         if (confirm)
         {
             await RecebimentoService.DeleteRecebimentoAsync(id);
+
+            // Registrar log da exclusão
+            var usuario = SessaoUsuario.Usuario?.Nome ?? "O Usuario Logado";
+            await LogService.RegistrarLogAsync(usuario, "Excluir Recebimento", $"Recebimento Id: {id} excluído");
+
             await CarregarRecebimentos();
             await CarregarMensalidades();
         }

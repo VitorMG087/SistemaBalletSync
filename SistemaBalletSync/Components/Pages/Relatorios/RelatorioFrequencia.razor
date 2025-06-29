@@ -1,5 +1,7 @@
 ﻿@page "/relatorios/frequencia"
 @inject AlunoService AlunoService
+@inject LogService LogService
+@using SistemaBalletSync.Services
 
 <h3>Relatório de Frequência</h3>
 
@@ -24,10 +26,12 @@
 
     @if (relatorio != null)
     {
-        <a class="btn btn-success" href="@($"/relatorio/frequencia/gerar-pdf?mes={mes}&ano={ano}")" target="_blank">
+        <a class="btn btn-success"
+           href="@($"/relatorio/frequencia/gerar-pdf?mes={mes}&ano={ano}")"
+           target="_blank"
+           rel="noopener noreferrer">
             Gerar PDF
         </a>
-
     }
     else
     {
@@ -73,6 +77,17 @@ else
 
     private async Task GerarRelatorio()
     {
-        relatorio = await AlunoService.ObterRelatorioFrequenciaPorMes(mes, ano);
+        try
+        {
+            relatorio = await AlunoService.ObterRelatorioFrequenciaPorMes(mes, ano);
+
+            var descricao = $"Relatório de Frequência exibido na tela - {mes:D2}/{ano}";
+            await LogService.RegistrarLogAsync("O Usuario Logado", descricao, "Sistema");
+        }
+        catch (Exception ex)
+        {
+            var erro = $"Erro ao gerar relatório de frequência {mes:D2}/{ano}: {ex.Message}";
+            await LogService.RegistrarLogAsync("O Usuario Logado", erro, "Sistema");
+        }
     }
 }

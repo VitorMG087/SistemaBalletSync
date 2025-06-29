@@ -3,6 +3,9 @@
 @inject DespesaService DespesaService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
+@inject LogService LogService
+@inject SessaoUsuario SessaoUsuario
+@using SistemaBalletSync.Services
 
 <PageTitle>Despesas - BalletSync</PageTitle>
 
@@ -60,20 +63,40 @@
         {
             DespesaModel = await DespesaService.GetDespesaByIdAsync(idDespesa.Value) ?? new Despesa();
         }
-    }
+        else
+        {
+            DespesaModel = new Despesa
+                {
+                    Data = DateTime.Today 
+                };
+        }
+            }
+        
 
     private async Task HandleValidSubmit()
     {
-        if (idDespesa == null)
-        {
-            await DespesaService.AddDespesaAsync(DespesaModel);
-        }
-        else
-        {
-            await DespesaService.UpdateDespesaAsync(DespesaModel, idDespesa.Value);
-        }
+        var nomeUsuario = SessaoUsuario.Usuario?.Nome ?? "O Usuario Logado";
 
-        Navigation.NavigateTo("/despesas");
+        try
+        {
+            if (idDespesa == null)
+            {
+                await DespesaService.AddDespesaAsync(DespesaModel);
+                await LogService.RegistrarLogAsync(nomeUsuario, "Cadastro de Despesa", $"Descrição: {DespesaModel.Descricao}, Valor: R$ {DespesaModel.Valor}");
+            }
+            else
+            {
+                
+                await DespesaService.UpdateDespesaAsync(DespesaModel, idDespesa.Value);
+                await LogService.RegistrarLogAsync(nomeUsuario, "Edição de Despesa", $"ID: {idDespesa.Value}, Nova descrição: {DespesaModel.Descricao}, Valor: R$ {DespesaModel.Valor}");
+            }
+
+            Navigation.NavigateTo("/despesas");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Erro ao salvar: {ex.Message}");
+        }
     }
 
     private void Voltar()

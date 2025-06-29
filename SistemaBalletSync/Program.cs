@@ -3,6 +3,7 @@ using SistemaBalletSync.Components;
 using DinkToPdf;
 using DinkToPdf.Contracts;
 using Microsoft.Extensions.DependencyInjection;
+using SistemaBalletSync.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var context = new CustomAssemblyLoadContext();
@@ -41,6 +42,7 @@ builder.Services.AddScoped<SessaoUsuario>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<TokenStorageService>();
 builder.Services.AddSingleton<TokenService>(); // se quiser gerar token no backend
+builder.Services.AddScoped<LogService>();
 
 
 

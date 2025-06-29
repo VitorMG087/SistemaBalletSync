@@ -1,6 +1,9 @@
 ﻿@inject SessaoUsuario SessaoUsuario
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject LogService LogService
+@using SistemaBalletSync.Services
+
 
 
 <div class="top-row d-flex justify-content-center navbar navbar-dark">
@@ -78,7 +81,6 @@
             }
         </div>
 
-        <!-- Botão Sair igual aos outros, sem cor vermelha -->
         <div class="nav-item px-3 mt-3">
             <a class="nav-link" @onclick="Logout" style="cursor:pointer;">
                 <i class="bi bi-box-arrow-right"></i> Sair
@@ -103,15 +105,25 @@
         mostrarRelatorios = !mostrarRelatorios;
     }
 
+    private string NomeUsuarioLogado => SessaoUsuario.Usuario?.Nome ?? "Desconhecido";
+
     private async Task Logout()
     {
-        // Remove token da sessão
+        var nomeUsuario = SessaoUsuario.Usuario?.Nome ?? "Ultimo Usuario Saiu";
+
+        await LogService.RegistrarLogAsync(
+            usuario: nomeUsuario,           // aqui vai o nome do usuário
+            acao: "Logout",                 // aqui a ação realizada
+            detalhe: "Usuário realizou logout pelo menu lateral."
+        );
+
         await JS.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
-
-        // Limpa sessão do usuário
         SessaoUsuario.Deslogar();
-
-        // Redireciona para tela de login
         Navigation.NavigateTo("/", forceLoad: true);
     }
+
 }
+
+
+
+

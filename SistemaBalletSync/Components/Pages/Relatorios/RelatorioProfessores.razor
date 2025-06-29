@@ -1,5 +1,7 @@
 ﻿@page "/relatorios/professores"
 @inject ProfessorService ProfessorService
+@inject LogService LogService
+@using SistemaBalletSync.Services
 
 <h3>Relatório de Professores</h3>
 
@@ -39,14 +41,14 @@
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>@relatorio.TituloColunaNome</th>                
+                    <th>@relatorio.TituloColunaNome</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in relatorio.Itens)
                 {
                     <tr>
-                        <td>@item.Nome</td>                     
+                        <td>@item.Nome</td>
                     </tr>
                 }
             </tbody>
@@ -66,6 +68,17 @@ else
 
     private async Task GerarRelatorio()
     {
-        relatorio = await ProfessorService.ObterRelatorioProfessoresPorMesEAnoAsync(mes, ano);
+        try
+        {
+            relatorio = await ProfessorService.ObterRelatorioProfessoresPorMesEAnoAsync(mes, ano);
+
+            var descricao = $"Relatório de Professores exibido na tela - {mes:D2}/{ano}";
+            await LogService.RegistrarLogAsync("O Usuario Logado", descricao, "Sistema");
+        }
+        catch (Exception ex)
+        {
+            var erro = $"Erro ao gerar relatório de professores {mes:D2}/{ano}: {ex.Message}";
+            await LogService.RegistrarLogAsync("O Usuario Logado", erro, "Sistema");
+        }
     }
 }
