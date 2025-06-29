@@ -40,6 +40,7 @@
                             <ValidationMessage For="@(() => AlunoModel.Telefone)" />
                         </div>
                     </div>
+
                     <div class="row">
                         <div class="col-xxl-3 col-md-6">
                             <label class="form-label">CEP<span class="text-danger">*</span></label>
@@ -81,6 +82,7 @@
                             </InputSelect>
                             <ValidationMessage For="@(() => AlunoModel.IdPlano)" />
                         </div>
+
                         <div class="col-xxl-3 col-md-6">
                             <label class="form-label">Status do Aluno</label>
                             <InputRadioGroup @bind-Value="AlunoModel.Ativo" class="form-check">
@@ -94,7 +96,6 @@
                                 </div>
                             </InputRadioGroup>
                         </div>
-
                     </div>
 
                     <div class="row mt-3">
@@ -119,17 +120,25 @@
     protected override async Task OnInitializedAsync()
     {
         Planos = await AlunoService.GetPlanosAsync();
+
         if (!string.IsNullOrEmpty(idAluno))
         {
-            int id = int.Parse(idAluno);
-            var alunoExistente = await AlunoService.GetAlunoByIdAsync(id);
-            if (alunoExistente != null)
+            if (int.TryParse(idAluno, out int id))
             {
-                AlunoModel = alunoExistente;
+                var alunoExistente = await AlunoService.GetAlunoByIdAsync(id);
+                if (alunoExistente != null)
+                {
+                    AlunoModel = alunoExistente;
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Aluno não encontrado.");
+                    Navigation.NavigateTo("/alunos");
+                }
             }
             else
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Aluno não encontrado.");
+                await JSRuntime.InvokeVoidAsync("alert", "ID do aluno inválido.");
                 Navigation.NavigateTo("/alunos");
             }
         }
@@ -145,14 +154,14 @@
             {
                 await AlunoService.AddAlunoAsync(AlunoModel);
 
-                // Log criação
+                // Log criação do aluno
                 await LogService.RegistrarLogAsync(usuarioLogado, "Cadastro de Aluno", $"Aluno {AlunoModel.Nome} cadastrado.");
             }
             else
             {
                 await AlunoService.UpdateAlunoAsync(AlunoModel, idAluno);
 
-                // Log edição
+                // Log edição do aluno
                 await LogService.RegistrarLogAsync(usuarioLogado, "Edição de Aluno", $"Aluno {AlunoModel.Nome} atualizado.");
             }
 
