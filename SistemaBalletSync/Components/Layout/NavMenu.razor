@@ -1,5 +1,7 @@
 ﻿@inject SessaoUsuario SessaoUsuario
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+
 
 <div class="top-row d-flex justify-content-center navbar navbar-dark">
     <div class="container-fluid d-flex justify-content-center">
@@ -82,7 +84,6 @@
                 <i class="bi bi-box-arrow-right"></i> Sair
             </a>
         </div>
-
     </nav>
 </div>
 
@@ -102,10 +103,15 @@
         mostrarRelatorios = !mostrarRelatorios;
     }
 
-    private void Logout()
+    private async Task Logout()
     {
+        // Remove token da sessão
+        await JS.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+
+        // Limpa sessão do usuário
         SessaoUsuario.Deslogar();
-        Navigation.NavigateTo("/");
+
+        // Redireciona para tela de login
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }
-

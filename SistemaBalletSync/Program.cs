@@ -1,4 +1,5 @@
-﻿using SistemaBalletSync.Components;
+﻿using System.IdentityModel.Tokens.Jwt;
+using SistemaBalletSync.Components;
 using DinkToPdf;
 using DinkToPdf.Contracts;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,10 @@ builder.Services.AddScoped<DespesaService>(_ =>
 // ✅ Registro do UsuarioService
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<SessaoUsuario>();
+builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<TokenStorageService>();
+builder.Services.AddSingleton<TokenService>(); // se quiser gerar token no backend
+
 
 
 

@@ -1,9 +1,70 @@
 ﻿@page "/inicio"
+@using System.IdentityModel.Tokens.Jwt
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <PageTitle>Início - BalletSync</PageTitle>
 
-<div class="container mt-5 text-center">
-    <img src="/img/logo-ballet.png" height="80" />
-    <h2 class="mt-4 text-secondary">Bem-vindo ao BalletSync!</h2>
-    <p class="lead">Escolha uma opção no menu lateral para começar.</p>
-</div>
+@if (!_verificado)
+{
+    <p>Verificando token...</p>
+}
+else if (string.IsNullOrEmpty(token))
+{
+    <p>Redirecionando para login...</p>
+}
+else
+{
+    <div class="container mt-5 text-center">
+        <img src="/img/logo-ballet.png" height="80" />
+        <h2 class="mt-4 text-secondary">Bem-vindo ao BalletSync!</h2>
+        <p class="lead">Escolha uma opção no menu lateral para começar.</p>
+    </div>
+}
+
+@code {
+    private string? token;
+    private bool _verificado = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            token = await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+
+            if (string.IsNullOrEmpty(token) || TokenExpirado(token))
+            {
+                await JS.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                _verificado = true;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private bool TokenExpirado(string jwtToken)
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(jwtToken);
+
+            // exp é em segundos desde epoch (Unix time)
+            var exp = token.Payload.Exp;
+
+            if (exp == null) return true; // se não tem exp, considera expirado
+
+            var expDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(exp));
+
+            return expDate.UtcDateTime <= DateTime.UtcNow;
+        }
+        catch
+        {
+            // Se der erro lendo o token, considera expirado
+            return true;
+        }
+    }
+}

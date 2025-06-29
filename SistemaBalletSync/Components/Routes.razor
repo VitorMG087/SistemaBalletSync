@@ -4,3 +4,72 @@
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
+    <Found Context="routeData">
+        @if (carregando)
+        {
+            <p>Carregando...</p>
+        }
+        else if (!temToken && !IsLoginPage(routeData))
+        {
+            <RedirectToLogin />
+        }
+        else
+        {
+            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        }
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <p>Oops! Página não encontrada.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    private bool carregando = true;
+    private bool temToken = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Pega token do localStorage via JS
+            temToken = !string.IsNullOrEmpty(await JS.InvokeAsync<string>("sessionStorage.getItem", "authToken"));
+            carregando = false;
+
+            StateHasChanged();
+
+            // Se não tem token e não está na página login, redireciona para login
+            var uri = new Uri(Navigation.Uri);
+            var relativePath = uri.AbsolutePath.Trim('/').ToLower();
+
+            if (!temToken && relativePath != "")
+            {
+                Navigation.NavigateTo("/", true);
+            }
+        }
+    }
+
+    private bool IsLoginPage(RouteData routeData)
+    {
+        // Verifica se o nome completo da página termina com Login (ex: Components.Pages.Login)
+        return routeData.PageType.FullName.EndsWith("Login");
+    }
+
+    // Componente simples para redirecionar para login (pode usar Navigation.NavigateTo diretamente também)
+    public partial class RedirectToLogin : ComponentBase
+    {
+        [Inject] NavigationManager Nav { get; set; } = default!;
+
+        protected override void OnInitialized()
+        {
+            Nav.NavigateTo("/login", true);
+        }
+    }
+}

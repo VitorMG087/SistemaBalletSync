@@ -1,5 +1,9 @@
 ﻿using Npgsql;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 
 public class UsuarioService
 {
@@ -36,6 +40,29 @@ public class UsuarioService
 
         return null;
     }
+    public string GerarToken(Usuario usuario)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes("esta_e_uma_chave_muito_secreta_com_32chars!");
+
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[]
+            {
+            new Claim(ClaimTypes.Name, usuario.Nome),
+            new Claim("id", usuario.Id.ToString())
+        }),
+           /* Expires = DateTime.UtcNow.AddHours(1),*/
+            Expires = DateTime.UtcNow.AddSeconds(5),
+
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+
 }
 
 public class Usuario
