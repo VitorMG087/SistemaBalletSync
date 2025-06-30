@@ -6,11 +6,9 @@ using Microsoft.JSInterop;
 using System.Threading.Tasks;
 
 
-// Serviço para gerar token JWT no servidor
 public class TokenService
 {
-    private const string KeyString = "12345678901234567890123456789012abcdefghi!@#"; // >= 32 chars
-
+    private const string KeyString = "12345678901234567890123456789012abcdefghi!@#"; 
     public string GerarToken(Usuario usuario)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -63,7 +61,6 @@ public class TokenService
     }
 }
 
-// Serviço para manipular token no browser via JSInterop no Blazor
 
 
 public class TokenStorageService

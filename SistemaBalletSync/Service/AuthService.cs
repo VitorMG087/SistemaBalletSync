@@ -4,6 +4,9 @@ using System.Security.Claims;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
+using System.Text;
+
 
 public class UsuarioService
 {
@@ -13,32 +16,32 @@ public class UsuarioService
     {
         _connectionString = configuration.GetConnectionString("DefaultConnection");
     }
-
     public async Task<Usuario?> ValidarUsuarioAsync(string nome, string senha)
     {
-        using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        using var conexao = new NpgsqlConnection(_connectionString);
+        await conexao.OpenAsync();
 
-        var cmd = new NpgsqlCommand(
-            "SELECT id, nome, email FROM usuarios WHERE nome = @nome AND senha = @senha", conn);
+        var comando = conexao.CreateCommand();
+        comando.CommandText = "SELECT id, nome, senha FROM usuarios WHERE nome = @nome";
+        comando.Parameters.AddWithValue("@nome", nome);
 
-        cmd.Parameters.AddWithValue("nome", nome.Trim());
-        cmd.Parameters.AddWithValue("senha", senha.Trim());
-
-        using var reader = await cmd.ExecuteReaderAsync();
-
+        using var reader = await comando.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new Usuario
+            var hashSalvo = reader["senha"].ToString();
+            var senhaDigitadaHash = CriptografiaHelper.GerarHashSha256(senha);
+
+            if (string.Equals(hashSalvo, senhaDigitadaHash, StringComparison.OrdinalIgnoreCase))
             {
-                Id = reader.GetInt32(0),
-                Nome = reader.GetString(1),
-                Email = reader.GetString(2),
-                Senha = senha
-            };
+                return new Usuario
+                {
+                    Id = Convert.ToInt32(reader["id"]),
+                    Nome = reader["nome"].ToString()
+                };
+            }
         }
 
-        return null;
+        return null; 
     }
     public string GerarToken(Usuario usuario)
     {
@@ -53,7 +56,7 @@ public class UsuarioService
             new Claim(ClaimTypes.Name, usuario.Nome),
             new Claim("id", usuario.Id.ToString())
         }),
-           Expires = DateTime.UtcNow.AddHours(1),
+            Expires = DateTime.UtcNow.AddHours(1),
             //Expires = DateTime.UtcNow.AddSeconds(5),
 
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -62,6 +65,18 @@ public class UsuarioService
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
+
+    public static class CriptografiaHelper
+    {
+        public static string GerarHashSha256(string senha)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(senha);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToHexString(hash);
+        }
+    }
+
 
 }
 

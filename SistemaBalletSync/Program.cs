@@ -10,10 +10,10 @@ var context = new CustomAssemblyLoadContext();
 var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "wkhtmltox", "libwkhtmltox.dll");
 context.LoadUnmanagedLibrary(dllPath);
 
-// Conexão com PostgreSQL
+
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Serviços do sistema
+
 builder.Services.AddSingleton(new RecebimentoService(connectionString));
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
@@ -36,12 +36,12 @@ builder.Services.AddScoped<AlunoService>(_ =>
 builder.Services.AddScoped<DespesaService>(_ =>
     new DespesaService(connectionString));
 
-// ✅ Registro do UsuarioService
+
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<SessaoUsuario>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<TokenStorageService>();
-builder.Services.AddSingleton<TokenService>(); // se quiser gerar token no backend
+builder.Services.AddSingleton<TokenService>(); 
 builder.Services.AddScoped<LogService>();
 
 

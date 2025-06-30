@@ -1,7 +1,7 @@
 ﻿using DinkToPdf;
 using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using SistemaBalletSync.Components.Pages.Cadastro; // AulaService
+using SistemaBalletSync.Components.Pages.Cadastro; 
 using System;
 using System.IO;
 using System.Text;
@@ -28,7 +28,7 @@ namespace SistemaBalletSync.Controllers
             var tituloColunaNome = "Nome";
             var relatorio = await _aulaService.ObterRelatorioAulasPorMes(mes, ano);
 
-            // Monta as linhas da tabela
+            
             var sbLinhas = new StringBuilder();
             foreach (var item in relatorio.Itens)
             {
@@ -39,7 +39,7 @@ namespace SistemaBalletSync.Controllers
                 sbLinhas.AppendLine("</tr>");
             }
 
-            // Carregar logo em base64 para embutir na tag img
+            
             string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "icone.jpg");
             string logoBase64 = "";
             if (System.IO.File.Exists(logoPath))

@@ -199,7 +199,7 @@ public class ProfessorService
                         professoresRelatorio.Add(new ItemRelatorioProfessor
                         {
                             Nome = reader.GetString(0),
-                            Especialidade = "Não informado", // como não existe no banco
+                            Especialidade = "Não informado",
                             QuantidadeAulas = reader.GetInt32(1)
                         });
                     }

@@ -15,12 +15,12 @@ public class RecebimentoService
         _connectionString = connectionString;
     }
 
-    // MÉTODO QUE ESTAVA FALTANDO - ADICIONE ESTE
+    
     public async Task<List<Mensalidade>> GetMensalidadesPorMesEAnoAsync(int mes, int ano)
     {
         using var connection = new NpgsqlConnection(_connectionString);
 
-        // PRIMEIRO: Gerar mensalidades automaticamente para alunos que não têm mensalidade no mês/ano
+        
         var alunosSemMensalidade = await connection.QueryAsync<(int Id, string Nome, decimal Valor)>(@"
         SELECT 
             a.id, 
@@ -37,7 +37,7 @@ public class RecebimentoService
                 AND EXTRACT(YEAR FROM m.data_vencimento) = @Ano
           )", new { Mes = mes, Ano = ano });
 
-        // Gerar mensalidades para os alunos que não têm
+        
         foreach (var aluno in alunosSemMensalidade)
         {
             var dataVencimento = new DateTime(ano, mes, 10);
@@ -53,7 +53,7 @@ public class RecebimentoService
             });
         }
 
-        // SEGUNDO: Buscar e retornar TODAS as mensalidades do mês (pagas e não pagas)
+       
         var query = @"
         SELECT 
             m.id, 
@@ -77,7 +77,7 @@ public class RecebimentoService
     {
         using var connection = new NpgsqlConnection(_connectionString);
 
-        // PRIMEIRO: Gerar mensalidades automaticamente para alunos que não têm mensalidade no mês/ano
+        
         var alunosSemMensalidade = await connection.QueryAsync<(int Id, string Nome, decimal Valor)>(@"
         SELECT 
             a.id, 
@@ -94,7 +94,7 @@ public class RecebimentoService
                 AND EXTRACT(YEAR FROM m.data_vencimento) = @Ano
           )", new { Mes = mes, Ano = ano });
 
-        // Gerar mensalidades para os alunos que não têm
+        
         foreach (var aluno in alunosSemMensalidade)
         {
             var dataVencimento = new DateTime(ano, mes, 10);
@@ -110,7 +110,7 @@ public class RecebimentoService
             });
         }
 
-        // SEGUNDO: Buscar e retornar as mensalidades em aberto do mês com JOIN para garantir o nome do aluno
+        
         var query = @"
         SELECT 
             m.id, 
@@ -135,7 +135,7 @@ public class RecebimentoService
     {
         using var connection = new NpgsqlConnection(_connectionString);
 
-        // Atualiza mensalidade para paga
+        
         var rowsAffected = await connection.ExecuteAsync(
             "UPDATE mensalidades SET esta_pago = true WHERE id = @Id",
             new { Id = mensalidadeId });
@@ -143,7 +143,7 @@ public class RecebimentoService
         if (rowsAffected == 0)
             throw new Exception("Mensalidade não encontrada ou já atualizada.");
 
-        // Buscar mensalidade atualizada com JOIN para obter o nome correto do aluno
+        
         var mensalidade = await connection.QuerySingleAsync<Mensalidade>(@"
         SELECT 
             m.id, 
@@ -156,14 +156,13 @@ public class RecebimentoService
         INNER JOIN alunos a ON m.aluno_id = a.id
         WHERE m.id = @Id", new { Id = mensalidadeId });
 
-        // Inserir recebimento com data atual (data do pagamento) e nome correto do aluno
         await connection.ExecuteAsync(@"
         INSERT INTO recebimentos (descricao, valor, data, categoria)
         VALUES (@Descricao, @Valor, @Data, @Categoria)", new
         {
             Descricao = $"Mensalidade - {mensalidade.NomeAluno}",
             Valor = mensalidade.Valor,
-            Data = DateTime.Now, // Data do pagamento = hoje
+            Data = DateTime.Now, 
             Categoria = "Mensalidade"
         });
     }
