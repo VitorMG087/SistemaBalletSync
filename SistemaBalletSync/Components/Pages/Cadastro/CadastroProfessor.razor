@@ -4,6 +4,8 @@
 @inject NavigationManager Navigation
 @inject LogService LogService
 @inject SessaoUsuario SessaoUsuario
+@inject ViaCepService ViaCepService
+@inject IJSRuntime JSRuntime
 @using SistemaBalletSync.Services
 
 <PageTitle>Professores - BalletSync</PageTitle>
@@ -42,7 +44,7 @@
                     <div class="row">
                         <div class="col-xxl-3 col-md-6">
                             <label class="form-label">CEP<span class="text-danger">*</span></label>
-                            <InputText class="form-control" @bind-Value="ProfessorModel.Cep" />
+                            <InputText class="form-control" @bind-Value="ProfessorModel.Cep" @onblur="BuscarEnderecoPorCep" />
                             <small class="text-danger">@((exibeMensagemObrigatorio && string.IsNullOrEmpty(ProfessorModel.Cep)) ? "Campo Obrigatório" : "")</small>
                         </div>
 
@@ -126,13 +128,34 @@
             detalhe = $"Professor editado: {ProfessorModel.Nome} (ID: {idProfessor})";
         }
 
-        // Registrar log
+        
         var usuario = SessaoUsuario.Usuario?.Nome ?? "O Usuario Logado";
         await LogService.RegistrarLogAsync(usuario, acao, detalhe);
 
         ProfessorModel = new Professor();
         Navigation.NavigateTo("/professores");
     }
+    private async Task BuscarEnderecoPorCep()
+    {
+        if (string.IsNullOrWhiteSpace(ProfessorModel.Cep))
+            return;
+
+        var endereco = await ViaCepService.BuscarEnderecoPorCep(ProfessorModel.Cep);
+
+        if (endereco != null)
+        {
+            ProfessorModel.Estado = endereco.Uf;
+            ProfessorModel.Cidade = endereco.Localidade;
+            ProfessorModel.Bairro = endereco.Bairro;
+            ProfessorModel.Endereco = endereco.Logradouro;
+            ProfessorModel.Complemento ??= endereco.Complemento;
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "CEP inválido ou não encontrado.");
+        }
+    }
+
 
     private void Voltar()
     {

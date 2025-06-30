@@ -6,7 +6,10 @@
 @inject PlanoService PlanoService
 @inject LogService LogService
 @inject SessaoUsuario SessaoUsuario
+@inject ViaCepService ViaCepService
 @using SistemaBalletSync.Services
+
+
 
 <PageTitle>Alunos - BalletSync</PageTitle>
 
@@ -44,7 +47,7 @@
                     <div class="row">
                         <div class="col-xxl-3 col-md-6">
                             <label class="form-label">CEP<span class="text-danger">*</span></label>
-                            <InputText class="form-control" @bind-Value="AlunoModel.Cep" />
+                            <InputText class="form-control" @bind-Value="AlunoModel.Cep" @onblur="BuscarEnderecoPorCep" />
                             <ValidationMessage For="@(() => AlunoModel.Cep)" />
                         </div>
                         <div class="col-xxl-3 col-md-6">
@@ -154,14 +157,14 @@
             {
                 await AlunoService.AddAlunoAsync(AlunoModel);
 
-                // Log criação do aluno
+                
                 await LogService.RegistrarLogAsync(usuarioLogado, "Cadastro de Aluno", $"Aluno {AlunoModel.Nome} cadastrado.");
             }
             else
             {
                 await AlunoService.UpdateAlunoAsync(AlunoModel, idAluno);
 
-                // Log edição do aluno
+                
                 await LogService.RegistrarLogAsync(usuarioLogado, "Edição de Aluno", $"Aluno {AlunoModel.Nome} atualizado.");
             }
 
@@ -170,8 +173,32 @@
         catch (Exception ex)
         {
             await JSRuntime.InvokeVoidAsync("alert", $"Ocorreu um erro ao salvar o aluno: {ex.Message}");
+      
+       }
+
+    }
+    private async Task BuscarEnderecoPorCep()
+    {
+        if (string.IsNullOrWhiteSpace(AlunoModel.Cep))
+            return;
+
+        var endereco = await ViaCepService.BuscarEnderecoPorCep(AlunoModel.Cep);
+
+        if (endereco != null)
+        {
+            AlunoModel.Estado = endereco.Uf;
+            AlunoModel.Cidade = endereco.Localidade;
+            AlunoModel.Bairro = endereco.Bairro;
+            AlunoModel.Endereco = endereco.Logradouro;
+            AlunoModel.Complemento ??= endereco.Complemento;
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "CEP inválido ou não encontrado.");
         }
     }
+
+
 
     private void Voltar() => Navigation.NavigateTo("/alunos");
 }

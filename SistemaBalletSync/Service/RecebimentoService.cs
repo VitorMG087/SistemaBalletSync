@@ -331,6 +331,54 @@ public class RecebimentoService
         return relatorio;
     }
 
+   public async Task DeleteRecebimento(int id)
+{
+    using var connection = new NpgsqlConnection(_connectionString);
+
+    var recebimento = await connection.QuerySingleOrDefaultAsync<Recebimento>(
+        "SELECT * FROM recebimentos WHERE id = @Id", new { Id = id });
+
+    if (recebimento == null)
+        throw new Exception("Recebimento não encontrado.");
+
+    // Se for um recebimento de mensalidade, desfaz a baixa
+    if (recebimento.Categoria == "Mensalidade")
+    {
+        string nomeAluno = recebimento.Descricao.Replace("Mensalidade - ", "").Trim();
+
+        // Corrigido para procurar por data de vencimento (não pela data do recebimento!)
+        var mensalidadeId = await connection.QueryFirstOrDefaultAsync<int?>(@"
+            SELECT m.id
+            FROM mensalidades m
+            INNER JOIN alunos a ON m.aluno_id = a.id
+            WHERE a.nome = @NomeAluno
+              AND m.valor = @Valor
+              AND m.esta_pago = true
+              AND m.data_vencimento = (
+                  SELECT MIN(m2.data_vencimento)
+                  FROM mensalidades m2
+                  INNER JOIN alunos a2 ON m2.aluno_id = a2.id
+                  WHERE a2.nome = @NomeAluno
+                    AND m2.valor = @Valor
+                    AND m2.esta_pago = true
+              )", new
+        {
+            NomeAluno = nomeAluno,
+            Valor = recebimento.Valor
+        });
+
+        if (mensalidadeId.HasValue)
+        {
+            await connection.ExecuteAsync(
+                "UPDATE mensalidades SET esta_pago = false WHERE id = @Id",
+                new { Id = mensalidadeId.Value });
+        }
+    }
+
+    await connection.ExecuteAsync("DELETE FROM recebimentos WHERE id = @Id", new { Id = id });
+}
+
+
 
 }
 

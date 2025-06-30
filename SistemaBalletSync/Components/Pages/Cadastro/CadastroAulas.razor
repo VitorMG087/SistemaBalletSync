@@ -184,7 +184,7 @@
 				acao = "Editar Aula";
 			}
 
-			// Registrar log
+			
 			await LogService.RegistrarLogAsync(usuarioLogado, acao, detalhe);
 
 			await JSRuntime.InvokeVoidAsync("alert", "Aula gravada com sucesso!");
@@ -192,7 +192,7 @@
 		}
 		catch (Exception ex)
 		{
-			// Registra erro no log (opcional)
+			
 			var usuarioLogado = SessaoUsuario.Usuario?.Nome ?? "O usuario Logado";
 			await LogService.RegistrarLogAsync(usuarioLogado, "Erro ao salvar Aula", ex.Message);
 

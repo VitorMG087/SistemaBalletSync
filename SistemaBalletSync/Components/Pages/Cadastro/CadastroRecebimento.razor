@@ -8,7 +8,7 @@
 <PageTitle>Recebimentos e Mensalidades</PageTitle>
 
 <div class="row">
-    <!-- CARD 1: Lista de Recebimentos -->
+   
     <div class="col-lg-12">
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -53,14 +53,14 @@
         </div>
     </div>
 
-    <!-- CARD 2: Consulta e Mensalidades em Aberto -->
+   
     <div class="col-lg-12">
         <div class="card">
             <div class="card-header">
                 <h4 class="mb-0">Mensalidades em Aberto</h4>
             </div>
             <div class="card-body">
-                <!-- Formulário de Filtro -->
+              
                 <EditForm Model="@filtros" OnValidSubmit="ConsultarMensalidades">
                     <div class="row g-3 mb-4">
                         <div class="col-md-2">
@@ -77,7 +77,7 @@
                     </div>
                 </EditForm>
 
-                <!-- Lista de Mensalidades -->
+                
                 @if (mensalidadesAbertas != null && mensalidadesAbertas.Any())
                 {
                     <h5>Mensalidades em Aberto - @filtros.Mes/@filtros.Ano</h5>
@@ -142,7 +142,7 @@
     {
         await CarregarMensalidades();
 
-        // Registrar log da consulta de mensalidades
+        
         var usuario = SessaoUsuario.Usuario?.Nome ?? "O Usuario Logado";
         await LogService.RegistrarLogAsync(usuario, "Consulta Mensalidades", $"Consulta mensalidades para {filtros.Mes}/{filtros.Ano}");
     }
@@ -153,7 +153,6 @@
         {
             await RecebimentoService.DarBaixaMensalidadeAsync(id);
 
-            // Registrar log da baixa
             var usuario = SessaoUsuario.Usuario?.Nome ?? "O Usuario Logado";
             await LogService.RegistrarLogAsync(usuario, "Dar Baixa Mensalidade", $"Baixa da mensalidade Id: {id}");
 
@@ -173,7 +172,7 @@
         {
             await RecebimentoService.DeleteRecebimentoAsync(id);
 
-            // Registrar log da exclusão
+            
             var usuario = SessaoUsuario.Usuario?.Nome ?? "O Usuario Logado";
             await LogService.RegistrarLogAsync(usuario, "Excluir Recebimento", $"Recebimento Id: {id} excluído");
 
@@ -184,7 +183,7 @@
 
     private Task<bool> ConfirmarExclusao()
     {
-        // Aqui você pode implementar um modal de confirmação de exclusão
+        
         return Task.FromResult(true);
     }
 

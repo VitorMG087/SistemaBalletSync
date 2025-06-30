@@ -1,7 +1,7 @@
 ﻿using DinkToPdf;
 using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using SistemaBalletSync.Components.Pages.Cadastro; 
+using SistemaBalletSync.Components.Pages.Cadastro;
 using System;
 using System.IO;
 using System.Text;
@@ -25,10 +25,8 @@ namespace SistemaBalletSync.Controllers
         [HttpGet("gerar-pdf-aulas")]
         public async Task<IActionResult> GerarPdfAulas(int mes, int ano)
         {
-            var tituloColunaNome = "Nome";
             var relatorio = await _aulaService.ObterRelatorioAulasPorMes(mes, ano);
 
-            
             var sbLinhas = new StringBuilder();
             foreach (var item in relatorio.Itens)
             {
@@ -36,10 +34,10 @@ namespace SistemaBalletSync.Controllers
                 sbLinhas.AppendLine($"<td>{item.Data}</td>");
                 sbLinhas.AppendLine($"<td>{item.Professor}</td>");
                 sbLinhas.AppendLine($"<td>{item.Tema}</td>");
+                
                 sbLinhas.AppendLine("</tr>");
             }
 
-            
             string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "icone.jpg");
             string logoBase64 = "";
             if (System.IO.File.Exists(logoPath))
@@ -154,13 +152,9 @@ namespace SistemaBalletSync.Controllers
           <th>{relatorio.TituloColunaData}</th>
           <th>{relatorio.TituloColunaProfessor}</th>
           <th>{relatorio.TituloColunaTema}</th>
+          
         </tr>
       </thead>
- <thead>
-            <tr>
-                <th>{tituloColunaNome}</th>
-            </tr>
-        </thead>
       <tbody>
         {sbLinhas}
       </tbody>

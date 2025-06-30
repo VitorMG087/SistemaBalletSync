@@ -52,10 +52,10 @@ else
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(jwtToken);
 
-            // exp é em segundos desde epoch (Unix time)
+            
             var exp = token.Payload.Exp;
 
-            if (exp == null) return true; // se não tem exp, considera expirado
+            if (exp == null) return true; 
 
             var expDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(exp));
 
@@ -63,7 +63,7 @@ else
         }
         catch
         {
-            // Se der erro lendo o token, considera expirado
+            
             return true;
         }
     }

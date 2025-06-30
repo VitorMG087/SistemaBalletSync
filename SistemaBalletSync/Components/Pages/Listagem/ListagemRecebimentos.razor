@@ -1,133 +1,119 @@
-﻿@page "/recebimentos/novo"
-@page "/recebimentos/editar/{id:int}"
+﻿@page "/mensalidades"
 @inject RecebimentoService RecebimentoService
-@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
-<PageTitle>Recebimentos - Cadastro/Edição</PageTitle>
+<PageTitle>Mensalidades - BalletSync</PageTitle>
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header align-items-center d-flex">
-                <h4 class="card-title mb-0 flex-grow-1">@((id == 0) ? "Cadastrar" : "Editar") Recebimento</h4>
-            </div>
-            <div class="card-body">
-                <EditForm Model="RecebimentoModel" OnValidSubmit="HandleValidSubmit">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
+<h3>Mensalidades</h3>
 
-                    <div class="row">
-                        <div class="col-xxl-4 col-md-6 mb-3">
-                            <label class="form-label">Descrição<span class="text-danger">*</span></label>
-                            <InputText class="form-control" @bind-Value="RecebimentoModel.Descricao" />
-                            <ValidationMessage For="@(() => RecebimentoModel.Descricao)" />
-                        </div>
-                        <div class="col-xxl-4 col-md-6 mb-3">
-                            <label class="form-label">Valor<span class="text-danger">*</span></label>
-                            <InputNumber class="form-control" @bind-Value="RecebimentoModel.Valor" />
-                            <ValidationMessage For="@(() => RecebimentoModel.Valor)" />
-                        </div>
-                        <div class="col-xxl-4 col-md-6 mb-3">
-                            <label class="form-label">Data<span class="text-danger">*</span></label>
-                            <InputDate class="form-control" @bind-Value="RecebimentoModel.Data" />
-                            <ValidationMessage For="@(() => RecebimentoModel.Data)" />
-                        </div>
-                        <div class="col-xxl-4 col-md-6 mb-3">
-                            <label class="form-label">Categoria<span class="text-danger">*</span></label>
-                            <InputText class="form-control" @bind-Value="RecebimentoModel.Categoria" />
-                            <ValidationMessage For="@(() => RecebimentoModel.Categoria)" />
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between mt-3">
-                        <button class="btn btn-secondary" type="button" @onclick="Voltar" disabled="@IsSaving">Voltar</button>
-                        <button class="btn btn-primary" type="submit" disabled="@IsSaving">Salvar</button>
-                    </div>
-                </EditForm>
-            </div>
-        </div>
+<div class="row mb-3">
+    <div class="col-2">
+        <label>Mês:</label>
+        <InputSelect @bind-Value="mesSelecionado" class="form-control">
+            @for (int i = 1; i <= 12; i++)
+            {
+                <option value="@i">@i.ToString("D2")</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="col-2">
+        <label>Ano:</label>
+        <InputNumber @bind-Value="anoSelecionado" class="form-control" />
+    </div>
+    <div class="col-2 align-self-end">
+        <button class="btn btn-primary" @onclick="CarregarMensalidades">Carregar</button>
     </div>
 </div>
 
+@if (mensalidades == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else if (!mensalidades.Any())
+{
+    <p>Nenhuma mensalidade encontrada para o período selecionado.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Aluno</th>
+                <th>Valor</th>
+                <th>Vencimento</th>
+                <th>Pago?</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var m in mensalidades)
+            {
+                <tr>
+                    <td>@m.NomeAluno</td>
+                    <td>@m.Valor.ToString("C")</td>
+                    <td>@m.DataVencimento.ToString("dd/MM/yyyy")</td>
+                    <td>@(m.EstaPago ? "Sim" : "Não")</td>
+                    <td>
+                        @if (m.EstaPago)
+                        {
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarExcluirRecebimento(m)">Excluir Pagamento</button>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
 @code {
-    private Recebimento RecebimentoModel = new Recebimento
-        {
-            Data = DateTime.Today
-        };
-
-    [Parameter] public int id { get; set; }
-
-    private bool IsSaving = false;
-
-    // Adicionando a variável filtros
-    private FiltroMensalidade filtros = new FiltroMensalidade();
+    private List<Mensalidade> mensalidades;
+    private int mesSelecionado = DateTime.Today.Month;
+    private int anoSelecionado = DateTime.Today.Year;
 
     protected override async Task OnInitializedAsync()
     {
-        if (id != 0)
+        await CarregarMensalidades();
+    }
+
+    private async Task CarregarMensalidades()
+    {
+        mensalidades = await RecebimentoService.GetMensalidadesPorMesEAnoAsync(mesSelecionado, anoSelecionado);
+    }
+
+    private async Task ConfirmarExcluirRecebimento(Mensalidade mensalidade)
+    {
+        bool confirmado = await JSRuntime.InvokeAsync<bool>("confirm", $"Deseja excluir o pagamento da mensalidade de {mensalidade.NomeAluno}?");
+
+        if (confirmado)
         {
-            RecebimentoModel = await RecebimentoService.GetRecebimentoByIdAsync(id);
-            if (RecebimentoModel.Data == DateTime.MinValue)
+            try
             {
-                RecebimentoModel.Data = DateTime.Today;
+                // Localiza o recebimento correspondente para exclusão
+                var todosRecebimentos = await RecebimentoService.GetRecebimentosPorMesEAnoAsync(mesSelecionado, anoSelecionado);
+                var recebimento = todosRecebimentos.FirstOrDefault(r =>
+                    r.Categoria == "Mensalidade" &&
+                    r.Descricao == $"Mensalidade - {mensalidade.NomeAluno}" &&
+                    r.Valor == mensalidade.Valor
+                );
+
+                if (recebimento != null)
+                {
+                    await RecebimentoService.DeleteRecebimento(recebimento.Id);
+                    await CarregarMensalidades();
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Recebimento correspondente não encontrado.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Erro ao excluir recebimento: {ex.Message}");
             }
         }
-    }
-
-    private async Task HandleValidSubmit()
-    {
-        if (IsSaving) return;
-
-        IsSaving = true;
-        try
-        {
-            if (id == 0)
-            {
-                await RecebimentoService.AddRecebimentoAsync(RecebimentoModel);
-            }
-            else
-            {
-                await RecebimentoService.UpdateRecebimentoAsync(RecebimentoModel, id);
-            }
-
-            Navigation.NavigateTo("/recebimentos");
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex.Message);
-        }
-        finally
-        {
-            IsSaving = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task GerarMensalidades()
-    {
-        try
-        {
-            await RecebimentoService.GerarMensalidadesAsync(filtros.Mes, filtros.Ano);
-            // Não é necessário chamar CarregarMensalidades aqui, pois não estamos na tela de listagem
-            Console.WriteLine("Mensalidades geradas com sucesso.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro ao gerar mensalidades: {ex.Message}");
-        }
-    }
-
-    private void Voltar()
-    {
-        if (!IsSaving)
-        {
-            Navigation.NavigateTo("/recebimentos");
-        }
-    }
-
-    public class FiltroMensalidade
-    {
-        public int Mes { get; set; } = DateTime.Today.Month; // Definindo um valor padrão
-        public int Ano { get; set; } = DateTime.Today.Year; // Definindo um valor padrão
     }
 }

@@ -296,11 +296,9 @@ public class Aluno
 		[Required(ErrorMessage = "O CEP é obrigatório.")]
 		[RegularExpression(@"^\d{8}$", ErrorMessage = "O CEP deve conter exatamente 8 números.")]
 		public string? Cep { get; set; }
-		[Required(ErrorMessage = "O estado é obrigatório.")]
-		[RegularExpression(@"^[A-Za-z\s]+$", ErrorMessage = "O estado deve conter apenas letras.")]
+		
 		public string Estado { get; set; }
-		[Required(ErrorMessage = "A cidade é obrigatório.")]
-		[RegularExpression(@"^[A-Za-z\s]+$", ErrorMessage = "deve conter uma cidade ")]
+		
 		public string Cidade { get; set; }
 
 		public string? Bairro { get; set; }

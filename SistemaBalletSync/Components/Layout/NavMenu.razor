@@ -112,8 +112,8 @@
         var nomeUsuario = SessaoUsuario.Usuario?.Nome ?? "Ultimo Usuario Saiu";
 
         await LogService.RegistrarLogAsync(
-            usuario: nomeUsuario,           // aqui vai o nome do usuário
-            acao: "Logout",                 // aqui a ação realizada
+            usuario: nomeUsuario,           
+            acao: "Logout",                 
             detalhe: "Usuário realizou logout pelo menu lateral."
         );
 

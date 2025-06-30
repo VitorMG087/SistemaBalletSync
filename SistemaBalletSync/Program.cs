@@ -43,11 +43,13 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<TokenStorageService>();
 builder.Services.AddSingleton<TokenService>(); 
 builder.Services.AddScoped<LogService>();
+builder.Services.AddHttpClient<ViaCepService>();
 
 
 
 
-// Configuração do HttpClient
+
+
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient("MyClient", client =>
 {
@@ -62,14 +64,14 @@ builder.Services.AddScoped(sp =>
     return httpClient;
 });
 
-// MVC + Blazor Server
+
 builder.Services.AddControllers();
 builder.Services.AddRazorComponents()
        .AddInteractiveServerComponents();
 
 var app = builder.Build();
 
-// Middlewares padrão
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

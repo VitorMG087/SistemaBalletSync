@@ -59,6 +59,31 @@ public class TokenService
             return jwt.ValidTo < DateTime.UtcNow;
         }
     }
+    public class TokenStorageService
+    {
+        private readonly IJSRuntime _jsRuntime;
+
+        public TokenStorageService(IJSRuntime jsRuntime)
+        {
+            _jsRuntime = jsRuntime;
+        }
+
+        public async Task<string?> GetTokenAsync()
+        {
+            return await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+        }
+
+        public async Task SetTokenAsync(string token)
+        {
+            await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "authToken", token);
+        }
+
+        public async Task RemoveTokenAsync()
+        {
+            await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+        }
+    }
+
 }
 
 
