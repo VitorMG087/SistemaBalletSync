@@ -21,8 +21,8 @@ public class TokenService
                 new Claim(ClaimTypes.Name, usuario.Nome),
                 new Claim("id", usuario.Id.ToString())
             }),
-            Expires = DateTime.UtcNow.AddHours(1),
-            //Expires = DateTime.UtcNow.AddSeconds(5),
+            //Expires = DateTime.UtcNow.AddHours(1),
+            Expires = DateTime.UtcNow.AddSeconds(5),
 
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };

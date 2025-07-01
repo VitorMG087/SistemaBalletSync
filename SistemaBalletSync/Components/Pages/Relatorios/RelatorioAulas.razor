@@ -2,6 +2,7 @@
 @inject AulaService AulaService
 @inject LogService LogService
 @using SistemaBalletSync.Services
+@using System.IdentityModel.Tokens.Jwt
 
 <h3>Relatório de Aulas</h3>
 
@@ -70,6 +71,8 @@ else
     private int mes = DateTime.Now.Month;
     private int ano = DateTime.Now.Year;
     private List<Aula> aulas;
+    private string? token;
+    private bool _tokenVerificado = false;
 
     private async Task GerarRelatorio()
     {

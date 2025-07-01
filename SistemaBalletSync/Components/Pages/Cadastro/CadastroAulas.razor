@@ -6,6 +6,8 @@
 @inject NavigationManager Navigation
 @inject SistemaBalletSync.Services.LogService LogService
 @inject SistemaBalletSync.Services.SessaoUsuario SessaoUsuario
+@using System.IdentityModel.Tokens.Jwt
+
 
 <PageTitle>Aulas - BalletSync</PageTitle>
 
@@ -116,6 +118,8 @@
 	private List<Aluno> AlunosAula = new List<Aluno>();
 	private List<Aluno> AlunosDisponiveis = new List<Aluno>();
 	private int? AlunoSelecionadoId;
+	private string? token;
+	private bool _tokenVerificado = false;
 
 	private DateTime? DataAula { get; set; } = DateTime.Now;
 
@@ -197,6 +201,40 @@
 			await LogService.RegistrarLogAsync(usuarioLogado, "Erro ao salvar Aula", ex.Message);
 
 			await JSRuntime.InvokeVoidAsync("alert", $"Erro ao salvar aula: {ex.Message}");
+		}
+	}
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+			if (string.IsNullOrEmpty(token) || TokenExpirado(token))
+			{
+				await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+				Navigation.NavigateTo("/", forceLoad: true);
+			}
+			else
+			{
+				_tokenVerificado = true;
+				StateHasChanged();
+			}
+		}
+	}
+
+	private bool TokenExpirado(string jwtToken)
+	{
+		try
+		{
+			var handler = new JwtSecurityTokenHandler();
+			var token = handler.ReadJwtToken(jwtToken);
+			var exp = token.Payload.Exp;
+			if (exp == null) return true;
+			var expDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(exp));
+			return expDate.UtcDateTime <= DateTime.UtcNow;
+		}
+		catch
+		{
+			return true;
 		}
 	}
 

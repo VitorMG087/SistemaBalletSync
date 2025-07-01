@@ -2,6 +2,7 @@
 @inject ProfessorService ProfessorService
 @inject LogService LogService
 @using SistemaBalletSync.Services
+@using System.IdentityModel.Tokens.Jwt
 
 <h3>Relatório de Professores</h3>
 
@@ -63,6 +64,8 @@ else
 @code {
     private int mes = DateTime.Now.Month;
     private int ano = DateTime.Now.Year;
+    private string? token;
+    private bool _tokenVerificado = false;
 
     private RelatorioProfessor relatorio;
 

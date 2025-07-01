@@ -2,6 +2,7 @@
 @inject RecebimentoService RecebimentoService
 @inject LogService LogService
 @using SistemaBalletSync.Services
+@using System.IdentityModel.Tokens.Jwt
 
 <h3>Relatório de Recebimentos</h3>
 
@@ -69,6 +70,8 @@ else
 @code {
     private int mes = DateTime.Now.Month;
     private int ano = DateTime.Now.Year;
+    private string? token;
+    private bool _tokenVerificado = false;
 
     private RelatorioRecebimento relatorio;
 

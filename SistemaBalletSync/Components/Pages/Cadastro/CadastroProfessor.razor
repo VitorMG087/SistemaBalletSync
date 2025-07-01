@@ -7,6 +7,8 @@
 @inject ViaCepService ViaCepService
 @inject IJSRuntime JSRuntime
 @using SistemaBalletSync.Services
+@using System.IdentityModel.Tokens.Jwt
+
 
 <PageTitle>Professores - BalletSync</PageTitle>
 
@@ -93,6 +95,8 @@
     private Professor ProfessorModel = new();
     [Parameter] public string idProfessor { get; set; } = string.Empty;
     private bool exibeMensagemObrigatorio;
+    private string? token;
+    private bool _tokenVerificado = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -153,6 +157,40 @@
         else
         {
             await JSRuntime.InvokeVoidAsync("alert", "CEP inválido ou não encontrado.");
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token) || TokenExpirado(token))
+            {
+                await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                _tokenVerificado = true;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private bool TokenExpirado(string jwtToken)
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(jwtToken);
+            var exp = token.Payload.Exp;
+            if (exp == null) return true;
+            var expDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(exp));
+            return expDate.UtcDateTime <= DateTime.UtcNow;
+        }
+        catch
+        {
+            return true;
         }
     }
 

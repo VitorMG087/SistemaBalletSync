@@ -3,6 +3,7 @@
 @inject ProfessorService ProfessorService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
+@using System.IdentityModel.Tokens.Jwt
 
 <PageTitle> Professores - BalletSync</PageTitle>
 
@@ -71,6 +72,8 @@ else
 	@using Microsoft.AspNetCore.Components;
 
 	private List<Professor> professores;
+	private string? token;
+	private bool _tokenVerificado = false;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -94,6 +97,40 @@ else
 		{
 			await ProfessorService.DeleteProfessorAsync(id);
 			professores = await ProfessorService.GetProfessoresAsync();
+		}
+	}
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+			if (string.IsNullOrEmpty(token) || TokenExpirado(token))
+			{
+				await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+				Navigation.NavigateTo("/", forceLoad: true);
+			}
+			else
+			{
+				_tokenVerificado = true;
+				StateHasChanged();
+			}
+		}
+	}
+
+	private bool TokenExpirado(string jwtToken)
+	{
+		try
+		{
+			var handler = new JwtSecurityTokenHandler();
+			var token = handler.ReadJwtToken(jwtToken);
+			var exp = token.Payload.Exp;
+			if (exp == null) return true;
+			var expDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(exp));
+			return expDate.UtcDateTime <= DateTime.UtcNow;
+		}
+		catch
+		{
+			return true;
 		}
 	}
 }

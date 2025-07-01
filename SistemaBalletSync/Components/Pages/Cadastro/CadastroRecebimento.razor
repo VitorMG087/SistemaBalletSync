@@ -4,6 +4,7 @@
 @inject LogService LogService
 @inject SessaoUsuario SessaoUsuario
 @using SistemaBalletSync.Services
+@using System.IdentityModel.Tokens.Jwt
 
 <PageTitle>Recebimentos e Mensalidades</PageTitle>
 
@@ -118,6 +119,8 @@
     private List<Recebimento> recebimentos = new();
     private List<Mensalidade> mensalidadesAbertas = new();
     private FiltroMensalidade filtros = new();
+    private string? token;
+    private bool _tokenVerificado = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -181,6 +184,7 @@
         }
     }
 
+
     private Task<bool> ConfirmarExclusao()
     {
         
@@ -192,4 +196,5 @@
         public int Mes { get; set; }
         public int Ano { get; set; }
     }
+
 }

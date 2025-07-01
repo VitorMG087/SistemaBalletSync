@@ -3,6 +3,7 @@
 @inject DespesaService DespesaService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
+@using System.IdentityModel.Tokens.Jwt
 
 <PageTitle>Despesas - BalletSync</PageTitle>
 
@@ -55,6 +56,8 @@ else
 
 @code {
     private List<Despesa> despesas;
+    private string? token;
+    private bool _tokenVerificado = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -78,6 +81,40 @@ else
         {
             await DespesaService.DeleteDespesaAsync(id);
             despesas = await DespesaService.GetDespesasAsync();
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token) || TokenExpirado(token))
+            {
+                await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "authToken");
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                _tokenVerificado = true;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private bool TokenExpirado(string jwtToken)
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(jwtToken);
+            var exp = token.Payload.Exp;
+            if (exp == null) return true;
+            var expDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(exp));
+            return expDate.UtcDateTime <= DateTime.UtcNow;
+        }
+        catch
+        {
+            return true;
         }
     }
 }

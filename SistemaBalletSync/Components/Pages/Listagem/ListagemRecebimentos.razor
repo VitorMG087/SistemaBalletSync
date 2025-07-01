@@ -1,6 +1,7 @@
 ﻿@page "/mensalidades"
 @inject RecebimentoService RecebimentoService
 @inject IJSRuntime JSRuntime
+@using System.IdentityModel.Tokens.Jwt
 
 <PageTitle>Mensalidades - BalletSync</PageTitle>
 
@@ -73,6 +74,8 @@ else
     private List<Mensalidade> mensalidades;
     private int mesSelecionado = DateTime.Today.Month;
     private int anoSelecionado = DateTime.Today.Year;
+    private string? token;
+    private bool _tokenVerificado = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,7 +95,7 @@ else
         {
             try
             {
-                // Localiza o recebimento correspondente para exclusão
+                
                 var todosRecebimentos = await RecebimentoService.GetRecebimentosPorMesEAnoAsync(mesSelecionado, anoSelecionado);
                 var recebimento = todosRecebimentos.FirstOrDefault(r =>
                     r.Categoria == "Mensalidade" &&
@@ -116,4 +119,5 @@ else
             }
         }
     }
+   
 }

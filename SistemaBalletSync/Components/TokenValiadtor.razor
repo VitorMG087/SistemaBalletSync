@@ -1,0 +1,22 @@
+﻿@inject TokenStorageService TokenStorage
+@inject NavigationManager Navigation
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await TokenStorage.GetTokenAsync();
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwt = handler.ReadJwtToken(token);
+        if (jwt.ValidTo < DateTime.UtcNow)
+        {
+            await TokenStorage.RemoveTokenAsync();
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+    }
+}
